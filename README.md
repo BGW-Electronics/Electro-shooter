@@ -35,42 +35,44 @@ Weapons fire automatically. Kill enemies, vacuum up the green XP gems, and pick 
 ## Global leaderboard
 
 All-time top-100, no login — just enter a name on the game-over screen. Powered by a single
-Cloudflare Pages Function (`functions/api/scores.js`) + a D1 (SQLite) database. The UI hides
-itself automatically when the API isn't reachable, so local play keeps working unchanged.
+API handler (`functions/api/scores.js`) + a D1 (SQLite) database. The UI hides itself
+automatically when the API isn't reachable, so local play keeps working unchanged.
 
 Server-side guardrails: name sanitized to 16 chars, score/time validated for plausibility,
 max 5 submissions per IP per 10 minutes (IP stored only as a salted hash). Note: with no
 login, a determined cheater can still forge scores — acceptable for a casual arcade board.
 
-## Publish on Cloudflare Pages (free)
+## Publish on Cloudflare (free)
 
-Free tier covers everything here: static hosting, `*.pages.dev` subdomain, Functions
-(100k requests/day) and D1 (100k writes/day).
+This deploys as a **Cloudflare Worker with static assets** (`worker.js` serves the API and
+falls back to the static game files). Free tier covers everything: hosting, a
+`*.workers.dev` subdomain, 100k requests/day, and D1 100k writes/day.
 
-**Option A — GitHub integration (no local tools needed):**
+**Connect the GitHub repo (no local tools needed):**
 
-1. Push this folder to a GitHub repository.
-2. Cloudflare dashboard → **Workers & Pages → Create → Pages → Connect to Git** → pick the
-   repo. Build command: *(none)*, output directory: `/`. Deploy.
-3. Dashboard → **Storage & Databases → D1 → Create database** → name it `neon-swarm-db`.
-4. Open the database → **Console** → paste the contents of `schema.sql` → run.
-5. Pages project → **Settings → Bindings → Add → D1 database** → variable name `DB`,
-   database `neon-swarm-db`.
-6. Redeploy (Deployments → Retry / push any commit). Game is live at
-   `https://<project>.pages.dev` with a working leaderboard.
+1. Push this repo to GitHub.
+2. Cloudflare dashboard → **Workers & Pages → Create → Import a repository** → pick the repo.
+   Build command: *(leave empty)*. Deploy command: `npx wrangler deploy` (the default).
+3. Make sure `name` in `wrangler.toml` matches the Worker's name shown in the dashboard
+   (edit either to match). Push — the game goes live at `https://<name>.<subdomain>.workers.dev`.
+   The leaderboard shows "offline" until you do the next part.
 
-**Option B — Wrangler CLI (needs Node.js):**
+**Turn the leaderboard on:**
+
+4. Dashboard → **Storage & Databases → D1 → Create database** → name it `neon-swarm-db`.
+5. Open it → **Console** → paste the contents of `schema.sql` → run.
+6. In `wrangler.toml`, paste the database's id into `database_id` and **uncomment** the four
+   `[[d1_databases]]` lines. Commit + push. Done — global scores now save.
+
+**Local CLI deploy instead (needs Node.js):**
 
 ```powershell
 npm i -g wrangler
 wrangler login
-wrangler d1 create neon-swarm-db        # paste the returned id into wrangler.toml
+wrangler d1 create neon-swarm-db        # paste the returned id into wrangler.toml, uncomment the block
 wrangler d1 execute neon-swarm-db --remote --file schema.sql
-wrangler pages deploy .
+wrangler deploy
 ```
-
-The drag-and-drop dashboard upload does **not** deploy the `functions/` folder — use
-Option A or B if you want the leaderboard (drag-and-drop still works for the game itself).
 
 ## Files
 
@@ -79,7 +81,9 @@ Option A or B if you want the leaderboard (drag-and-drop still works for the gam
 - `game.js` — combat, spawning, weapons, enemies, boss AI
 - `main.js` — input, rendering, HUD, upgrade UI, game loop
 - `leaderboard.js` — leaderboard client (fetch/submit, degrades gracefully offline)
-- `functions/api/scores.js` — Cloudflare Pages Function: GET top 100 / POST score
+- `worker.js` — Cloudflare Worker entry point (routes API + serves static assets)
+- `functions/api/scores.js` — leaderboard API logic: GET top 100 / POST score
 - `schema.sql` — D1 table + indexes
-- `wrangler.toml` — config for CLI deploys (Option B)
+- `wrangler.toml` — Cloudflare deploy config (Worker name, assets, D1 binding)
+- `.assetsignore` — keeps server-side files from being served publicly
 - `serve.ps1` — optional tiny static server for local play (no Node/Python required)

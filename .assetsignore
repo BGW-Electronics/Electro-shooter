@@ -1,0 +1,12 @@
+# Files that live in the repo but must NOT be served as public static assets.
+# (Wrangler still bundles worker.js + functions/ into the Worker itself — this
+#  only controls what's reachable as a static URL.)
+.assetsignore
+worker.js
+wrangler.toml
+functions/
+schema.sql
+serve.ps1
+README.md
+*.original.md
+.claude/
