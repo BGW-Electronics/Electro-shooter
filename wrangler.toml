@@ -1,0 +1,9 @@
+# Only needed for CLI deploys (wrangler pages deploy). Dashboard/Git deploys configure bindings in the UI instead.
+name = "neon-swarm"
+compatibility_date = "2026-06-01"
+pages_build_output_dir = "."
+
+[[d1_databases]]
+binding = "DB"
+database_name = "neon-swarm-db"
+database_id = "PASTE-YOUR-D1-DATABASE-ID-HERE"

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>NEON SWARM</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='42' fill='%2300ffd9'/></svg>">
+<style>
+:root{ --cy:#00ffd9; --mg:#ff2d95; }
+*{ box-sizing:border-box; -webkit-user-select:none; user-select:none; }
+html,body{ margin:0; height:100%; overflow:hidden; background:#03040a; font-family:'Segoe UI',system-ui,sans-serif; color:#d8faff; }
+canvas#game{ position:fixed; inset:0; display:block; touch-action:none; }
+
+.overlay{ position:fixed; inset:0; z-index:10; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; text-align:center; padding:20px;
+  background:radial-gradient(ellipse at center, rgba(5,10,25,.80), rgba(2,3,8,.93)); backdrop-filter:blur(3px); }
+.hidden{ display:none !important; }
+
+.title{ font-size:min(11vw,84px); margin:0; letter-spacing:.18em; font-weight:800; color:#fff;
+  text-shadow:0 0 8px var(--cy),0 0 24px var(--cy),0 0 64px rgba(0,255,217,.6); animation:pulse 2.2s ease-in-out infinite; }
+@keyframes pulse{ 50%{ text-shadow:0 0 6px var(--cy),0 0 16px var(--cy),0 0 40px rgba(0,255,217,.35); } }
+.tag{ margin:0; color:#7fe9ff; letter-spacing:.42em; text-transform:uppercase; font-size:13px; }
+.panel{ border:1px solid rgba(0,255,217,.25); background:rgba(0,255,217,.04); padding:10px 24px; border-radius:10px; color:#9fdce8; font-size:14px; line-height:1.9; }
+.sub{ color:#7fa6b8; font-size:13px; letter-spacing:.18em; margin:0; }
+
+button{ font:inherit; cursor:pointer; background:transparent; color:var(--cy); border:1.5px solid var(--cy); padding:13px 34px; font-size:17px; letter-spacing:.22em; border-radius:8px; text-transform:uppercase; transition:.15s;
+  box-shadow:0 0 14px rgba(0,255,217,.25), inset 0 0 14px rgba(0,255,217,.06); }
+button:hover{ background:var(--cy); color:#03131a; box-shadow:0 0 30px rgba(0,255,217,.7); }
+button.small{ padding:8px 18px; font-size:13px; }
+
+h2{ font-size:min(9vw,46px); margin:0; letter-spacing:.14em; color:#fff; text-shadow:0 0 18px var(--mg),0 0 50px rgba(255,45,149,.5); }
+#levelup h2, #win h2{ text-shadow:0 0 18px var(--cy),0 0 50px rgba(0,255,217,.5); }
+
+.cards{ display:flex; gap:18px; flex-wrap:wrap; justify-content:center; max-width:880px; }
+.card{ width:228px; min-height:225px; border:1px solid rgba(0,255,217,.35); border-radius:14px; padding:18px 16px; cursor:pointer; transition:.13s; position:relative;
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  background:linear-gradient(160deg, rgba(10,30,40,.92), rgba(5,8,18,.94)); }
+.card:hover{ transform:translateY(-6px) scale(1.03); border-color:var(--cy); box-shadow:0 0 26px rgba(0,255,217,.35); }
+.card .ic{ font-size:38px; line-height:1.2; filter:drop-shadow(0 0 8px currentColor); }
+.card h3{ margin:2px 0; font-size:17px; letter-spacing:.06em; color:#fff; }
+.card .pips{ font-size:12px; letter-spacing:.3em; color:var(--cy); }
+.card .new{ color:var(--mg); font-weight:700; font-size:12px; letter-spacing:.3em; }
+.card p{ margin:2px 0; font-size:13px; color:#9fdce8; line-height:1.5; }
+.card .key{ position:absolute; top:8px; right:10px; border:1px solid rgba(255,255,255,.3); border-radius:5px; font-size:11px; padding:2px 7px; color:#9fdce8; }
+
+.stats{ display:grid; grid-template-columns:auto auto; gap:8px 28px; font-size:18px; color:#bfeefc; text-align:left; }
+.stats b{ color:#fff; text-shadow:0 0 10px rgba(0,255,217,.8); }
+.stats .nb{ color:#ffd75e; text-shadow:0 0 12px rgba(255,215,94,.9); }
+
+.lbPanel{ border:1px solid rgba(0,255,217,.22); background:rgba(0,255,217,.04); border-radius:10px; padding:10px 18px; min-width:300px; max-width:430px; }
+.lbPanel h4{ margin:2px 0 8px; letter-spacing:.3em; color:#7fe9ff; font-size:12px; text-align:center; }
+.lbRow{ display:grid; grid-template-columns:28px 1fr auto; gap:10px; font-size:14px; padding:3px 0; color:#bfeefc; text-align:left; }
+.lbRow.me{ color:#ffd75e; text-shadow:0 0 8px rgba(255,215,94,.7); }
+.lbRow .rk{ color:#5d8fa0; }
+.lbForm{ display:flex; gap:10px; align-items:center; justify-content:center; flex-wrap:wrap; }
+.lbForm input{ font:inherit; background:rgba(0,255,217,.05); border:1.5px solid rgba(0,255,217,.4); color:#eafffb; padding:10px 14px; border-radius:8px; letter-spacing:.1em; width:210px; outline:none; text-transform:uppercase; }
+.lbForm input:focus{ border-color:var(--cy); box-shadow:0 0 14px rgba(0,255,217,.3); }
+
+#muteBtn{ position:fixed; right:12px; bottom:12px; z-index:20; padding:7px 12px; font-size:15px; letter-spacing:0; border-radius:8px; opacity:.6; }
+#muteBtn:hover{ opacity:1; }
+.btnrow{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div class="overlay" id="menu">
+  <h1 class="title">NEON SWARM</h1>
+  <p class="tag">endless arena survival</p>
+  <div class="panel">
+    <b style="color:#fff">WASD / arrows</b> move &nbsp;·&nbsp; <b style="color:#fff">SPACE</b> dash &nbsp;·&nbsp; weapons fire on their own<br>
+    <b style="color:#fff">P</b> pause &nbsp;·&nbsp; <b style="color:#fff">M</b> mute &nbsp;·&nbsp; touch: drag to move, second finger to dash
+  </div>
+  <p class="sub">collect XP · choose upgrades · slay the OVERMIND at 5:00</p>
+  <button id="startBtn">ENTER THE ARENA</button>
+  <p class="sub" id="menuBest"></p>
+  <div class="lbPanel hidden" id="menuBoard"></div>
+</div>
+
+<div class="overlay hidden" id="levelup">
+  <h2>LEVEL UP</h2>
+  <p class="sub">CHOOSE AN UPGRADE — CLICK OR PRESS 1 / 2 / 3</p>
+  <div class="cards" id="cards"></div>
+</div>
+
+<div class="overlay hidden" id="pause">
+  <h2 style="text-shadow:0 0 18px var(--cy),0 0 50px rgba(0,255,217,.5)">PAUSED</h2>
+  <div class="panel">WASD move · SPACE dash · M mute</div>
+  <button id="resumeBtn">RESUME [P]</button>
+</div>
+
+<div class="overlay hidden" id="over">
+  <h2 id="overTitle">SIGNAL LOST</h2>
+  <div class="stats" id="overStats"></div>
+  <div class="lbForm hidden" id="lbForm">
+    <input id="nameInput" maxlength="16" spellcheck="false" autocomplete="off" placeholder="YOUR NAME">
+    <button id="submitScoreBtn" class="small">SUBMIT</button>
+  </div>
+  <p class="sub hidden" id="lbStatus"></p>
+  <div class="lbPanel hidden" id="overBoard"></div>
+  <button id="restartBtn">RESTART [R]</button>
+</div>
+
+<div class="overlay hidden" id="win">
+  <h2>OVERMIND DESTROYED</h2>
+  <p class="sub">THE SWARM ONLY GROWS ANGRIER…</p>
+  <div class="stats" id="winStats"></div>
+  <div class="btnrow">
+    <button id="continueBtn">KEEP FIGHTING [ENTER]</button>
+    <button id="restartBtn2" class="small">RESTART [R]</button>
+  </div>
+</div>
+
+<button id="muteBtn" title="toggle sound [M]">🔊</button>
+
+<script src="core.js"></script>
+<script src="game.js"></script>
+<script src="main.js"></script>
+<script src="leaderboard.js"></script>
+</body>
+</html>
