@@ -11,13 +11,8 @@ compatibility_date = "2026-06-01"
 directory = "."
 binding = "ASSETS"
 
-# ---- Leaderboard database (optional) --------------------------------------
-# The game deploys and plays fine WITHOUT this — the leaderboard just shows
-# "offline". To turn the global leaderboard on:
-#   1) wrangler d1 create neon-swarm-db          (or create it in the dashboard)
-#   2) run schema.sql against that database
-#   3) paste the database_id below, uncomment the 4 lines, commit + push
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "neon-swarm-db"
-# database_id = "PASTE-YOUR-D1-DATABASE-ID-HERE"
+# ---- Leaderboard database --------------------------------------------------
+[[d1_databases]]
+binding = "DB"
+database_name = "electro-shooter-db"
+database_id = "56f63555-8333-4616-8a78-f86f596ab51d"
