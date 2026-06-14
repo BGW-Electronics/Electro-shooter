@@ -55,14 +55,17 @@ function nearestEnemies(x, y, maxD, n) {
 /* ---------------- damage / death ---------------- */
 function hitEnemy(e, dmg, kx, ky) {
   if (e.dead) return;
-  let crit = Math.random() < 0.1;
+  let crit = Math.random() < critChance();
   dmg *= dmgMul();
-  if (crit) dmg *= 2;
+  if (crit) dmg *= critMult();
   e.hp -= dmg;
   e.flash = 0.08;
   if (kx || ky) { e.kb.x += kx; e.kb.y += ky; }
   addText(dmg, e.x, e.y, crit);
   sfx("hit");
+  if (state.passives.siphon && state.player.hp > 0) {
+    state.player.hp = Math.min(state.player.maxhp, state.player.hp + dmg * siphonFrac());
+  }
   if (e.hp <= 0) killEnemy(e);
 }
 
@@ -106,6 +109,7 @@ function killEnemy(e) {
 function damagePlayer(d) {
   const p = state.player;
   if (p.ifr > 0 || p.dashT > 0 || state.mode !== "playing") return;
+  d *= (1 - faradayBlock());
   p.hp -= d;
   p.ifr = 0.6;
   state.hurtT = 0.55;
@@ -143,19 +147,20 @@ function gainXP(v) {
 function edgeSpawn(margin) {
   margin = margin || 60;
   const p = state.player, side = randi(0, 3);
+  const hw = viewHW(), hh = viewHH();
   let x, y;
-  if (side === 0)      { x = rand(p.x - W / 2 - margin, p.x + W / 2 + margin); y = p.y - H / 2 - margin; }
-  else if (side === 1) { x = rand(p.x - W / 2 - margin, p.x + W / 2 + margin); y = p.y + H / 2 + margin; }
-  else if (side === 2) { x = p.x - W / 2 - margin; y = rand(p.y - H / 2 - margin, p.y + H / 2 + margin); }
-  else                 { x = p.x + W / 2 + margin; y = rand(p.y - H / 2 - margin, p.y + H / 2 + margin); }
+  if (side === 0)      { x = rand(p.x - hw - margin, p.x + hw + margin); y = p.y - hh - margin; }
+  else if (side === 1) { x = rand(p.x - hw - margin, p.x + hw + margin); y = p.y + hh + margin; }
+  else if (side === 2) { x = p.x - hw - margin; y = rand(p.y - hh - margin, p.y + hh + margin); }
+  else                 { x = p.x + hw + margin; y = rand(p.y - hh - margin, p.y + hh + margin); }
   return { x, y };
 }
 
 function spawnEnemy(type, elite, pos) {
   const d = ETYPES[type];
   const t = state.time;
-  const hpScale  = 1 + (t / 60) * 0.5 + Math.pow(t / 60, 1.5) * 0.12 + state.hyper * 0.8;
-  const dmgScale = 1 + (t / 60) * 0.12 + state.hyper * 0.2;
+  const hpScale  = 1.15 + (t / 60) * 0.55 + Math.pow(t / 60, 1.5) * 0.14 + state.hyper * 0.8;
+  const dmgScale = 1.06 + (t / 60) * 0.12 + state.hyper * 0.2;
   const sp = pos || edgeSpawn();
   const e = {
     type, x: sp.x, y: sp.y,
@@ -189,7 +194,7 @@ function spawnBoss() {
   };
   state.enemies.push(b);
   state.boss = b;
-  announce("☠ OVERMIND ONLINE ☠");
+  announce(t("bossOnline"));
   sfx("boss");
   addShake(10, 0.6);
 }
@@ -204,7 +209,7 @@ function onBossDeath(b) {
   addShake(24, 0.8);
   state.bossT = 240;
   if (!state.won) { state.won = true; winGame(); }
-  else announce("☠ OVERMIND RE-DEFEATED — IT WILL RETURN ☠");
+  else announce(t("bossRedef"));
 }
 
 function pickType() {
@@ -222,20 +227,20 @@ function pickType() {
 }
 
 function director(dt) {
-  const t = state.time;
+  const tm = state.time;
 
   for (const [ut, key, msg] of UNLOCKS) {
-    if (t >= ut && !state.announced[key]) { state.announced[key] = true; announce(msg); }
+    if (tm >= ut && !state.announced[key]) { state.announced[key] = true; announce(t(msg)); }
   }
 
   state.spawnT -= dt;
-  let interval = clamp(1.15 - t * 0.0028 - state.hyper * 0.1, 0.16, 1.15);
+  let interval = clamp(1.15 - tm * 0.0028 - state.hyper * 0.1, 0.16, 1.15);
   if (state.boss) interval *= 1.5;
   if (state.spawnT <= 0 && state.enemies.length < 240) {
     state.spawnT = interval;
     const type = pickType();
     spawnEnemy(type);
-    if (t > 60 && Math.random() < 0.1) {
+    if (tm > 60 && Math.random() < 0.1) {
       const sp = edgeSpawn();
       for (let i = 0; i < 3; i++) spawnEnemy(type, false, { x: sp.x + rand(-50, 50), y: sp.y + rand(-50, 50) });
     }
@@ -243,9 +248,9 @@ function director(dt) {
 
   state.eliteT -= dt;
   if (state.eliteT <= 0) {
-    state.eliteT = Math.max(32, 60 - t * 0.04);
+    state.eliteT = Math.max(32, 60 - tm * 0.04);
     spawnEnemy(pickType(), true);
-    announce("⚠ ELITE SIGNATURE ⚠");
+    announce(t("elite"));
   }
 
   if (!state.boss) {
@@ -274,6 +279,7 @@ function updateWeapons(dt) {
           state.bullets.push({ x: p.x, y: p.y, vx: Math.cos(a) * 540, vy: Math.sin(a) * 540, dmg: s.dmg, life: 1.4 });
         }
         p.face = Math.atan2(targets[0].y - p.y, targets[0].x - p.x);
+        p.muzzle = 0.07;
         sfx("shoot");
       } else wb.cd = 0.12;
     }
@@ -363,6 +369,89 @@ function updateWeapons(dt) {
       }
     }
   }
+
+  /* static field */
+  const wf = state.weapons.statics;
+  if (wf.lvl > 0) {
+    wf.cd -= dt;
+    if (wf.cd <= 0) {
+      const s = FIELD[wf.lvl - 1];
+      const targets = nearestEnemies(p.x, p.y, 720, s.n);
+      wf.cd = targets.length ? s.int / rm : 0.25;
+      for (let i = 0; i < s.n; i++) {
+        const tg = targets.length ? targets[i % targets.length] : p;
+        state.fields.push({ x: tg.x, y: tg.y, r: s.r, dmg: s.dmg, life: s.dur, ml: s.dur, tick: 0.2 });
+      }
+      if (targets.length) sfx("field");
+    }
+  }
+
+  /* railgun */
+  const wr = state.weapons.railgun;
+  if (wr.lvl > 0) {
+    wr.cd -= dt;
+    if (wr.cd <= 0) {
+      const s = RAIL[wr.lvl - 1];
+      const tg = nearestEnemy(p.x, p.y, s.range, null);
+      if (!tg) wr.cd = 0.2;
+      else {
+        wr.cd = s.int / rm;
+        const ang = Math.atan2(tg.y - p.y, tg.x - p.x), dx = Math.cos(ang), dy = Math.sin(ang);
+        const hitList = [];
+        for (const e of state.enemies) {
+          if (e.dead) continue;
+          const rx = e.x - p.x, ry = e.y - p.y;
+          const proj = rx * dx + ry * dy;
+          if (proj < -e.r || proj > s.range) continue;
+          if (Math.abs(rx * dy - ry * dx) < s.w + e.r) hitList.push(e);
+        }
+        for (const e of hitList) hitEnemy(e, s.dmg, dx * 90, dy * 90);
+        state.beams.push({ x1: p.x, y1: p.y, x2: p.x + dx * s.range, y2: p.y + dy * s.range, w: s.w, t: 0.16 });
+        p.face = ang; p.muzzle = 0.07;
+        addShake(3, 0.12);
+        sfx("rail");
+      }
+    }
+  }
+
+  /* faraday shield — aura ticks damage + knockback; block applied in damagePlayer */
+  const wfa = state.weapons.faraday;
+  if (wfa.lvl > 0) {
+    const s = FARADAY[wfa.lvl - 1];
+    wfa.cd -= dt;
+    if (wfa.cd <= 0) {
+      wfa.cd = 0.35;
+      for (const e of state.enemies) {
+        if (e.dead || e.boss) continue;
+        const rr = s.r + e.r;
+        if (dist2(p.x, p.y, e.x, e.y) < rr * rr) {
+          const d = Math.max(1, Math.hypot(e.x - p.x, e.y - p.y));
+          hitEnemy(e, s.dmg, ((e.x - p.x) / d) * 220, ((e.y - p.y) / d) * 220);
+        }
+      }
+    }
+  }
+}
+
+function updateFields(dt) {
+  for (const f of state.fields) {
+    f.life -= dt; f.tick -= dt;
+    if (f.life <= 0) { f.dead = true; continue; }
+    if (f.tick <= 0) {
+      f.tick = 0.4;
+      for (const e of state.enemies) {
+        if (e.dead) continue;
+        const rr = f.r + e.r;
+        if (dist2(f.x, f.y, e.x, e.y) < rr * rr) hitEnemy(e, f.dmg);
+      }
+    }
+  }
+  state.fields = state.fields.filter(f => !f.dead);
+}
+
+function updateBeams(dt) {
+  for (const b of state.beams) b.t -= dt;
+  state.beams = state.beams.filter(b => b.t > 0);
 }
 
 function explodeMissile(m) {
@@ -553,8 +642,16 @@ function updateEnemies(dt) {
 /* ---------------- player ---------------- */
 function tryDash() {
   const p = state.player;
-  if (state.mode !== "playing" || p.dashCd > 0) return;
-  p.dashCd = 2.1;
+  if (state.mode !== "playing") return;
+  if (!state.dashUnlocked) {
+    if (state.dashLockMsgT <= 0) {
+      announce(state.level < 10 ? t("dashLockLv") : t("dashLockBuy"));
+      state.dashLockMsgT = 3.4;
+    }
+    return;
+  }
+  if (p.dashCd > 0) return;
+  p.dashCd = state.dashCdMax;
   p.dashT = 0.18;
   p.ifr = Math.max(p.ifr, 0.32);
   const im = inputMove();
@@ -566,6 +663,7 @@ function tryDash() {
 function updatePlayer(dt) {
   const p = state.player;
   p.ifr -= dt; p.dashCd -= dt;
+  if (state.dashLockMsgT > 0) state.dashLockMsgT -= dt;
   let sp = moveSpeed();
   let mx, my;
   if (p.dashT > 0) {
@@ -581,6 +679,17 @@ function updatePlayer(dt) {
   p.y += my * sp * dt;
   if (mx || my) p.moveAng = Math.atan2(my, mx);
   if (regenRate() > 0) p.hp = Math.min(p.maxhp, p.hp + regenRate() * dt);
+
+  /* aim the barrel smoothly at the nearest enemy */
+  if (p.muzzle > 0) p.muzzle -= dt;
+  const aim = nearestEnemy(p.x, p.y, 100000, null);
+  if (aim) {
+    const want = Math.atan2(aim.y - p.y, aim.x - p.x);
+    let da = want - p.face;
+    while (da > Math.PI) da -= TAU;
+    while (da < -Math.PI) da += TAU;
+    p.face += da * Math.min(1, dt * 13);
+  }
 
   const k = 1 - Math.exp(-10 * dt);
   state.cam.x += (p.x - state.cam.x) * k;
@@ -662,6 +771,8 @@ function update(dt) {
   updateMissiles(dt);
   updateNovas(dt);
   updateBolts(dt);
+  updateFields(dt);
+  updateBeams(dt);
   updateGems(dt);
   updatePickups(dt);
   updateParticles(dt);

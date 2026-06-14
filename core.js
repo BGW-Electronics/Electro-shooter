@@ -21,6 +21,20 @@ const ctx = canvas.getContext("2d");
 let W = innerWidth, H = innerHeight;
 const DPR = Math.min(window.devicePixelRatio || 1, 2);
 let vigDark = null, vigHurt = null;
+/* true only for actual phones/tablets — NOT touch-capable laptops (which keep
+   the full desktop view). a laptop with a touchscreen still has a fine pointer. */
+const IS_MOBILE = (function () {
+  const mm = window.matchMedia ? window.matchMedia.bind(window) : null;
+  const coarse = mm && mm("(pointer: coarse)").matches;
+  const anyFine = mm && mm("(any-pointer: fine)").matches;
+  const ua = /Mobi|Android|iPhone|iPad|iPod|Windows Phone|BlackBerry|Opera Mini|IEMobile/i.test(navigator.userAgent || "");
+  return ua || (coarse && !anyFine);
+})();
+/* world zoom: phones zoom out to see more of the arena; desktop stays 1:1. */
+let ZOOM = IS_MOBILE ? 0.78 : 1;
+/* visible world half-extents (account for zoom) — used for spawning + background fill */
+function viewHW() { return (W / 2) / ZOOM; }
+function viewHH() { return (H / 2) / ZOOM; }
 
 function makeRadialOverlay(col) {
   const c = document.createElement("canvas");
@@ -38,7 +52,7 @@ function resize() {
   canvas.width = Math.floor(W * DPR); canvas.height = Math.floor(H * DPR);
   canvas.style.width = W + "px"; canvas.style.height = H + "px";
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  vigDark = makeRadialOverlay("rgba(0,0,14,0.55)");
+  vigDark = makeRadialOverlay(typeof themeVignette === "function" ? themeVignette() : "rgba(0,0,14,0.55)");
   vigHurt = makeRadialOverlay("rgba(255,20,55,0.55)");
 }
 addEventListener("resize", resize);
@@ -204,6 +218,10 @@ function sfx(name) {
     case "zap":     A.noise({ ftype: "highpass", f0: 2500, f1: 800, dur: 0.09, vol: 0.1 });
                     A.tone({ type: "square", f0: 1400, f1: 220, dur: 0.08, vol: 0.05 }); break;
     case "missile": A.noise({ f0: 600, f1: 1400, dur: 0.13, vol: 0.06 }); break;
+    case "rail":    A.noise({ ftype: "highpass", f0: 3200, f1: 400, dur: 0.18, vol: 0.13 });
+                    A.tone({ type: "sawtooth", f0: 700, f1: 130, dur: 0.18, vol: 0.08 }); break;
+    case "field":   A.tone({ type: "sine", f0: 180, f1: 90, dur: 0.18, vol: 0.06 });
+                    A.noise({ ftype: "highpass", f0: 1600, f1: 600, dur: 0.14, vol: 0.05 }); break;
     case "boom":    A.noise({ f0: 700, f1: 80, dur: 0.3, vol: 0.18 }); break;
     case "bigboom": A.noise({ f0: 900, f1: 50, dur: 0.7, vol: 0.3 });
                     A.tone({ type: "sine", f0: 110, f1: 35, dur: 0.7, vol: 0.25 }); break;
@@ -253,44 +271,90 @@ const MISSILE = [
   { int: 2.1, dmg: 42, n: 3, r: 94 },
   { int: 1.7, dmg: 52, n: 4, r: 106 },
 ];
+const FIELD = [
+  { int: 2.2, dmg: 6,  r: 60, dur: 3.5, n: 1 },
+  { int: 2.0, dmg: 7,  r: 68, dur: 4.0, n: 1 },
+  { int: 1.7, dmg: 8,  r: 76, dur: 4.5, n: 2 },
+  { int: 1.5, dmg: 10, r: 84, dur: 5.0, n: 2 },
+  { int: 1.2, dmg: 13, r: 95, dur: 5.5, n: 3 },
+];
+const RAIL = [
+  { int: 2.6, dmg: 40,  w: 12, range: 700 },
+  { int: 2.3, dmg: 52,  w: 13, range: 760 },
+  { int: 2.0, dmg: 66,  w: 15, range: 820 },
+  { int: 1.7, dmg: 82,  w: 17, range: 900 },
+  { int: 1.4, dmg: 105, w: 20, range: 1000 },
+];
+const FARADAY = [
+  { r: 55, dmg: 5,  block: 0.15 },
+  { r: 62, dmg: 7,  block: 0.20 },
+  { r: 70, dmg: 9,  block: 0.28 },
+  { r: 78, dmg: 12, block: 0.35 },
+  { r: 90, dmg: 16, block: 0.45 },
+];
 
 const WEAPON_DEFS = {
-  blaster:   { name: "Pulse Blaster",  icon: "✦", css: "#7fd4ff", table: BLASTER,
-    desc: ["Auto-fires at the nearest enemy", "+1 projectile, faster fire", "Faster fire, +damage", "+1 projectile", "+1 projectile, max power"] },
-  orbit:     { name: "Orbit Blades",   icon: "❖", css: "#ff5ad1", table: ORBIT,
-    desc: ["2 blades orbit you, shredding on contact", "+1 blade", "+1 blade, faster spin", "+1 blade, +damage", "+2 blades, max power"] },
-  nova:      { name: "Nova Pulse",     icon: "◎", css: "#5dffc9", table: NOVA,
-    desc: ["Periodic shockwave — also wipes enemy shots", "Bigger, stronger", "Faster recharge", "Bigger, stronger", "Massive nova"] },
-  lightning: { name: "Chain Lightning",icon: "⚡", css: "#ffe75e", table: LIGHTNING,
-    desc: ["Zaps the nearest enemy, arcs between foes", "+1 chain", "+1 chain, +damage", "+1 chain", "+2 chains, max power"] },
-  missile:   { name: "Seeker Swarm",   icon: "➤", css: "#ff9d5c", table: MISSILE,
-    desc: ["Homing missile with splash damage", "+1 missile", "+damage, +splash", "+1 missile", "+1 missile, max power"] },
+  blaster:   { icon: "✦", css: "#7fd4ff", table: BLASTER,
+    name: { en: "Arc Emitter", hr: "Lučni Emiter" },
+    desc: { en: ["Auto-fires arcs at the nearest component", "+1 arc, faster fire", "Faster fire, +damage", "+1 arc", "+1 arc, max power"],
+            hr: ["Sam puca lukove na najbližu komponentu", "+1 luk, brže pucanje", "Brže pucanje, +šteta", "+1 luk", "+1 luk, maks. snaga"] } },
+  orbit:     { icon: "❖", css: "#ff5ad1", table: ORBIT,
+    name: { en: "Coil Rotors", hr: "Zavojni Rotori" },
+    desc: { en: ["2 coils orbit the core, shredding on contact", "+1 coil", "+1 coil, faster spin", "+1 coil, +damage", "+2 coils, max power"],
+            hr: ["2 zavojnice kruže oko jezgre i ranjavaju dodirom", "+1 zavojnica", "+1 zavojnica, brža vrtnja", "+1 zavojnica, +šteta", "+2 zavojnice, maks. snaga"] } },
+  nova:      { icon: "◎", css: "#5dffc9", table: NOVA,
+    name: { en: "EMP Pulse", hr: "EMP Puls" },
+    desc: { en: ["Periodic EMP shockwave — also wipes enemy shots", "Bigger, stronger", "Faster recharge", "Bigger, stronger", "Massive EMP"],
+            hr: ["Povremeni EMP val — briše i neprijateljske hice", "Veći, jači", "Brže punjenje", "Veći, jači", "Ogroman EMP"] } },
+  lightning: { icon: "⚡", css: "#ffe75e", table: LIGHTNING,
+    name: { en: "Tesla Arc", hr: "Tesla Luk" },
+    desc: { en: ["Zaps the nearest component, arcs between foes", "+1 chain", "+1 chain, +damage", "+1 chain", "+2 chains, max power"],
+            hr: ["Šokira najbližu komponentu, preskače na druge", "+1 skok", "+1 skok, +šteta", "+1 skok", "+2 skoka, maks. snaga"] } },
+  missile:   { icon: "➤", css: "#ff9d5c", table: MISSILE,
+    name: { en: "Ion Seekers", hr: "Ionski Tragači" },
+    desc: { en: ["Homing ion charge with splash damage", "+1 seeker", "+damage, +splash", "+1 seeker", "+1 seeker, max power"],
+            hr: ["Samonavodeći ionski naboj s eksplozijom", "+1 tragač", "+šteta, +eksplozija", "+1 tragač", "+1 tragač, maks. snaga"] } },
+  statics:   { icon: "▦", css: "#b388ff", table: FIELD,
+    name: { en: "Static Field", hr: "Statičko Polje" },
+    desc: { en: ["Drops a crackling field that shocks enemies inside it", "Bigger field, lasts longer", "+1 field, +damage", "Bigger, faster drops", "+1 field, max power"],
+            hr: ["Ostavlja pucketavo polje koje šokira neprijatelje unutra", "Veće polje, duže traje", "+1 polje, +šteta", "Veće, brže postavljanje", "+1 polje, maks. snaga"] } },
+  railgun:   { icon: "⇶", css: "#ff6b8a", table: RAIL,
+    name: { en: "Railgun", hr: "Topnjača" },
+    desc: { en: ["Charges and fires a piercing beam through a line of enemies", "+damage, longer beam", "Faster fire, +damage", "Wider beam, +damage", "Faster fire, max power"],
+            hr: ["Nabija i ispaljuje probojnu zraku kroz red neprijatelja", "+šteta, duža zraka", "Brže pucanje, +šteta", "Šira zraka, +šteta", "Brže pucanje, maks. snaga"] } },
+  faraday:   { icon: "✺", css: "#86f7ff", table: FARADAY,
+    name: { en: "Faraday Shield", hr: "Faradayev Kavez" },
+    desc: { en: ["A shield aura shocks nearby enemies and blocks some contact damage", "Bigger aura, +damage", "+block, +damage", "Bigger aura, +block", "+damage, max power"],
+            hr: ["Štitna aura šokira bliske neprijatelje i blokira dio kontaktne štete", "Veća aura, +šteta", "+blok, +šteta", "Veća aura, +blok", "+šteta, maks. snaga"] } },
 };
 
 const PASSIVE_DEFS = {
-  damage:   { name: "Damage Amp",     icon: "✸", css: "#ff7b7b", desc: "+12% damage to everything" },
-  rate:     { name: "Overclock",      icon: "⟳", css: "#7fd4ff", desc: "+10% attack speed" },
-  speed:    { name: "Swift Circuits", icon: "»", css: "#9dffa1", desc: "+9% movement speed" },
-  vitality: { name: "Vital Core",     icon: "♥", css: "#ff5e9a", desc: "+20 max HP, heal 20" },
-  magnet:   { name: "Magnet Core",    icon: "◉", css: "#5de1ff", desc: "+35% pickup range" },
-  regen:    { name: "Nanobots",       icon: "✚", css: "#a1ff5e", desc: "+0.6 HP/s regeneration" },
+  damage:   { icon: "✸", css: "#ff7b7b", name: { en: "Voltage Boost", hr: "Naponsko Pojačanje" }, desc: { en: "+12% damage to everything", hr: "+12% štete na sve" } },
+  rate:     { icon: "⟳", css: "#7fd4ff", name: { en: "Overclock", hr: "Overclock" }, desc: { en: "+10% attack speed", hr: "+10% brzine napada" } },
+  speed:    { icon: "»", css: "#9dffa1", name: { en: "Swift Circuits", hr: "Brzi Krugovi" }, desc: { en: "+9% movement speed", hr: "+9% brzine kretanja" } },
+  vitality: { icon: "▮", css: "#ff5e9a", name: { en: "Capacitor Bank", hr: "Banka Kondenzatora" }, desc: { en: "+20 max HP, recharge 20", hr: "+20 maks. HP, napuni 20" } },
+  magnet:   { icon: "◉", css: "#5de1ff", name: { en: "Magnetic Field", hr: "Magnetsko Polje" }, desc: { en: "+35% pickup range", hr: "+35% dometa skupljanja" } },
+  regen:    { icon: "✚", css: "#a1ff5e", name: { en: "Trickle Charge", hr: "Sporo Punjenje" }, desc: { en: "+0.6 HP/s recharge", hr: "+0.6 HP/s punjenje" } },
+  siphon:   { icon: "♥", css: "#ff96c0", name: { en: "Energy Siphon", hr: "Energetski Sifon" }, desc: { en: "Heal a little for every point of damage you deal", hr: "Lječi malo za svaku štetu koju naneseš" } },
+  overvolt: { icon: "★", css: "#ffcf4d", name: { en: "Overvolt", hr: "Prenapon" }, desc: { en: "+crit chance and +crit damage", hr: "+šansa i +šteta kritičnog udara" } },
 };
 
-/* enemy archetypes — shape: 0 = circle, else polygon sides */
+/* enemy archetypes (rogue components) — shape: 0 = circle, else polygon sides
+   chaser=Resistor speedy=Diode tank=Transformer splitter=Transistor mini=Electron shooter=Actuator */
 const ETYPES = {
-  chaser:   { r: 13, hp: 16, spd: [68, 95],   dmg: 10, xp: 1, score: 10, col: "255,77,109",  shape: 0 },
-  speedy:   { r: 9,  hp: 9,  spd: [150, 180], dmg: 7,  xp: 1, score: 15, col: "255,60,220",  shape: 3 },
-  tank:     { r: 24, hp: 85, spd: [38, 50],   dmg: 18, xp: 4, score: 40, col: "255,150,40",  shape: 6 },
-  splitter: { r: 17, hp: 34, spd: [60, 75],   dmg: 12, xp: 2, score: 30, col: "80,255,120",  shape: 4 },
-  mini:     { r: 8,  hp: 7,  spd: [120, 150], dmg: 6,  xp: 1, score: 8,  col: "140,255,160", shape: 0 },
-  shooter:  { r: 13, hp: 26, spd: [52, 62],   dmg: 8,  xp: 3, score: 35, col: "190,110,255", shape: 5 },
+  chaser:   { r: 13, hp: 16, spd: [68, 95],   dmg: 10, xp: 1, score: 10, col: "255,128,64",  shape: 0 },
+  speedy:   { r: 9,  hp: 9,  spd: [150, 180], dmg: 7,  xp: 1, score: 15, col: "255,224,84",  shape: 3 },
+  tank:     { r: 24, hp: 85, spd: [38, 50],   dmg: 18, xp: 4, score: 40, col: "150,140,255", shape: 6 },
+  splitter: { r: 17, hp: 34, spd: [60, 75],   dmg: 12, xp: 2, score: 30, col: "80,235,140",  shape: 4 },
+  mini:     { r: 8,  hp: 7,  spd: [120, 150], dmg: 6,  xp: 1, score: 8,  col: "150,255,205", shape: 0 },
+  shooter:  { r: 13, hp: 26, spd: [52, 62],   dmg: 8,  xp: 3, score: 35, col: "225,120,255", shape: 5 },
 };
 
 const UNLOCKS = [
-  [40,  "speedy",   "◢ SPRINTERS DETECTED"],
-  [90,  "tank",     "◉ HEAVIES INBOUND"],
-  [140, "splitter", "◈ SPLITTERS EMERGING"],
-  [200, "shooter",  "✦ GUNNERS ON THE FIELD"],
+  [40,  "speedy",   "unlockDiodes"],
+  [90,  "tank",     "unlockTransformers"],
+  [140, "splitter", "unlockTransistors"],
+  [200, "shooter",  "unlockActuators"],
 ];
 
 /* ---------------- best score ---------------- */
@@ -316,7 +380,7 @@ function newGame() {
     player: {
       x: 0, y: 0, r: 12, hp: 100, maxhp: 100, baseSpeed: 235,
       ifr: 1.5, dashCd: 0, dashT: 0, dashDx: 1, dashDy: 0,
-      face: 0, moveAng: 0,
+      face: 0, moveAng: 0, muzzle: 0,
     },
     weapons: {
       blaster:   { lvl: 1, cd: 0.5 },
@@ -324,11 +388,16 @@ function newGame() {
       nova:      { lvl: 0, cd: 0 },
       lightning: { lvl: 0, cd: 0 },
       missile:   { lvl: 0, cd: 0 },
+      statics:   { lvl: 0, cd: 0 },
+      railgun:   { lvl: 0, cd: 0 },
+      faraday:   { lvl: 0, cd: 0 },
     },
-    passives: { damage: 0, rate: 0, speed: 0, vitality: 0, magnet: 0, regen: 0 },
+    passives: { damage: 0, rate: 0, speed: 0, vitality: 0, magnet: 0, regen: 0, siphon: 0, overvolt: 0 },
+    dashTaken: 0, dashUnlocked: false, dashCdMax: 7, dashLockMsgT: 0,
     level: 1, xp: 0, xpNeed: xpNeedFor(1), pendingUps: 0,
     enemies: [], bullets: [], ebullets: [], gems: [], pickups: [],
     missiles: [], novas: [], bolts: [], parts: [], texts: [],
+    fields: [], beams: [],
     bladePos: null,
     spawnT: 0.8, eliteT: 110, bossT: 300, boss: null, bossesKilled: 0,
     shake: 0, shakeMag: 0, flash: 0, hurtT: 0,
@@ -339,8 +408,12 @@ function newGame() {
 }
 
 /* derived stats */
-function dmgMul()    { return 1 + 0.12 * state.passives.damage; }
-function rateMul()   { return 1 + 0.10 * state.passives.rate; }
-function moveSpeed() { return state.player.baseSpeed * (1 + 0.09 * state.passives.speed); }
-function magnetR()   { return 95 * (1 + 0.35 * state.passives.magnet); }
-function regenRate() { return 0.6 * state.passives.regen; }
+function dmgMul()      { return 1 + 0.12 * state.passives.damage; }
+function rateMul()     { return 1 + 0.10 * state.passives.rate; }
+function moveSpeed()   { return state.player.baseSpeed * (1 + 0.09 * state.passives.speed); }
+function magnetR()     { return 95 * (1 + 0.35 * state.passives.magnet); }
+function regenRate()   { return 0.6 * state.passives.regen; }
+function siphonFrac()  { return 0.01 * state.passives.siphon; }
+function critChance()  { return 0.10 + 0.05 * state.passives.overvolt; }
+function critMult()    { return 2 + 0.2 * state.passives.overvolt; }
+function faradayBlock() { const w = state.weapons.faraday; return w.lvl > 0 ? FARADAY[w.lvl - 1].block : 0; }

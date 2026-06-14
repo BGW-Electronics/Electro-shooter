@@ -1,6 +1,6 @@
-# NEON SWARM
+# BGW Electro Shooter
 
-An endless neon arena-survival browser game (Vampire Survivors style). No dependencies, no build step, no assets — pure HTML5 canvas + WebAudio.
+An endless grid-defense survival game for **BGW Electronics** (Vampire Survivors style). You're an energy core defending the power grid — a field of solar panels — against a swarm of rogue electronic components. No dependencies, no build step, no assets — pure HTML5 canvas + WebAudio.
 
 ## Run it
 
@@ -24,13 +24,13 @@ powershell -ExecutionPolicy Bypass -File serve.ps1
 | `1` `2` `3` | Pick upgrade on level-up |
 | Touch | Drag to move, tap with a second finger to dash |
 
-Weapons fire automatically. Kill enemies, vacuum up the green XP gems, and pick one of three upgrades each level.
+Your defenses fire automatically. Destroy the rogue components, vacuum up the charge they drop, and pick one of three upgrades each level.
 
-- **Weapons (5, each up to lvl 5):** Pulse Blaster, Orbit Blades, Nova Pulse (also wipes enemy bullets), Chain Lightning, Seeker Swarm missiles.
-- **Passives (6):** damage, attack speed, move speed, max HP, pickup magnet, regeneration.
-- **Enemies:** chasers, sprinters (0:40), tanks (1:30), splitters (2:20), ranged gunners (3:20), plus gold-ringed **elites** every minute.
-- **Boss:** the OVERMIND arrives at **5:00** — radial bullet bursts and telegraphed charges. Kill it to win, then keep going: the game turns endless and a stronger one returns every 4 minutes.
-- Pickups: ✚ heals, ☢ nukes the screen. Best score is saved locally.
+- **Weapons (5, each up to lvl 5):** Arc Emitter, Coil Rotors, EMP Pulse (also wipes enemy shots), Tesla Arc, Ion Seekers.
+- **Passives (6):** Voltage Boost, Overclock, Swift Circuits, Capacitor Bank (max HP), Magnetic Field (pickup range), Trickle Charge (regen).
+- **Enemies (rogue components):** Resistors, Diodes (0:40), Transformers (1:30), Transistors that split into Electrons (2:20), ranged Actuators (3:20), plus gold-ringed **overcharged** units every minute.
+- **Boss:** THE OVERLOAD arrives at **5:00** — radial bursts and telegraphed charges. Purge it to win, then keep going: the grid stays endless and a stronger Overload rebuilds every 4 minutes.
+- Pickups: green **battery** recharges HP, yellow **EMP** clears the screen. Best score is saved locally.
 
 ## Global leaderboard
 

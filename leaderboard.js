@@ -41,7 +41,7 @@ function lbRowsHTML(list, n, meName, meScore) {
     const me = meName && s.name === meName && Number(s.score) === meScore;
     html += `<div class="lbRow${me ? " me" : ""}"><span class="rk">${i + 1}</span><span>${lbEsc(s.name)}</span><span>${Number(s.score).toLocaleString()}</span></div>`;
   }
-  return html || `<div class="lbRow"><span class="rk">—</span><span>no scores yet — be first</span><span></span></div>`;
+  return html || `<div class="lbRow"><span class="rk">—</span><span>${t("lbNoScores")}</span><span></span></div>`;
 }
 
 async function lbRenderMenu() {
@@ -49,7 +49,7 @@ async function lbRenderMenu() {
   if (!el) return;
   await lbFetch();
   if (!LB.available) return; /* stays hidden in local play */
-  el.innerHTML = `<h4>★ TOP PILOTS — ALL TIME</h4>` + lbRowsHTML(LB.cache, 5);
+  el.innerHTML = `<h4>${t("lbMenuTitle")}</h4>` + lbRowsHTML(LB.cache, 5);
   el.classList.remove("hidden");
 }
 
@@ -66,14 +66,14 @@ function lbOnGameOver() {
   lbFetch().then(() => {
     if (state.mode !== "over") return; /* player already restarted */
     if (!LB.available) {
-      status.textContent = "GLOBAL LEADERBOARD OFFLINE — DEPLOYED VERSION ONLY";
+      status.textContent = t("lbOffline");
       status.classList.remove("hidden");
       return;
     }
     const inp = document.getElementById("nameInput");
     try { inp.value = localStorage.getItem("neonswarm_name") || ""; } catch (e) {}
     form.classList.remove("hidden");
-    board.innerHTML = `<h4>★ ALL-TIME TOP 10</h4>` + lbRowsHTML(LB.cache, 10);
+    board.innerHTML = `<h4>${t("lbTop10")}</h4>` + lbRowsHTML(LB.cache, 10);
     board.classList.remove("hidden");
   });
 }
@@ -100,14 +100,14 @@ async function lbSubmit() {
     if (!r.ok || !j.ok) throw new Error(j.error || "submit failed");
     LB.submitted = true;
     document.getElementById("lbForm").classList.add("hidden");
-    status.textContent = `RANK #${j.rank} — WELCOME TO THE BOARD, ${name}`;
+    status.textContent = t("lbRank", j.rank, name);
     status.classList.remove("hidden");
     await lbFetch();
-    board.innerHTML = `<h4>★ ALL-TIME TOP 10</h4>` + lbRowsHTML(LB.cache, 10, name, LB.run.score);
+    board.innerHTML = `<h4>${t("lbTop10")}</h4>` + lbRowsHTML(LB.cache, 10, name, LB.run.score);
     board.classList.remove("hidden");
     sfx("levelup");
   } catch (e) {
-    status.textContent = "SUBMIT FAILED — " + (e.message || "TRY AGAIN").toUpperCase();
+    status.textContent = t("lbSubmitFail") + (e.message || "TRY AGAIN").toUpperCase();
     status.classList.remove("hidden");
   }
   LB.busy = false;

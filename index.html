@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>NEON SWARM</title>
+<title>BGW Electro Shooter</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='42' fill='%2300ffd9'/></svg>">
 <style>
@@ -15,10 +15,21 @@ canvas#game{ position:fixed; inset:0; display:block; touch-action:none; }
   background:radial-gradient(ellipse at center, rgba(5,10,25,.80), rgba(2,3,8,.93)); backdrop-filter:blur(3px); }
 .hidden{ display:none !important; }
 
-.title{ font-size:min(11vw,84px); margin:0; letter-spacing:.18em; font-weight:800; color:#fff;
+.title{ font-size:min(8.4vw,60px); margin:0; letter-spacing:.06em; font-weight:800; color:#fff; line-height:1.05;
   text-shadow:0 0 8px var(--cy),0 0 24px var(--cy),0 0 64px rgba(0,255,217,.6); animation:pulse 2.2s ease-in-out infinite; }
 @keyframes pulse{ 50%{ text-shadow:0 0 6px var(--cy),0 0 16px var(--cy),0 0 40px rgba(0,255,217,.35); } }
 .tag{ margin:0; color:#7fe9ff; letter-spacing:.42em; text-transform:uppercase; font-size:13px; }
+.brand{ margin:-4px 0 2px; color:#ffd75e; letter-spacing:.34em; font-weight:700; font-size:13px; text-shadow:0 0 12px rgba(255,215,94,.55); }
+.brandLogo{ width:min(58vw,272px); height:auto; margin:-2px 0 2px; filter:drop-shadow(0 0 14px rgba(0,255,217,.30)); }
+
+.arsenalScroll{ width:min(95vw,780px); max-height:62vh; overflow-y:auto; display:flex; flex-direction:column; gap:6px; padding:4px 8px 8px;
+  scrollbar-width:thin; scrollbar-color:rgba(0,255,217,.4) transparent; }
+.arsSection{ color:#7fe9ff; letter-spacing:.3em; font-size:11px; margin:10px 2px 2px; text-align:left; text-transform:uppercase; }
+.arsGrid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(232px,1fr)); gap:9px; }
+.arsItem{ display:flex; gap:11px; align-items:flex-start; border:1px solid rgba(0,255,217,.16); border-radius:10px; padding:9px 12px; background:rgba(8,22,34,.55); text-align:left; }
+.arsItem .ai{ font-size:25px; line-height:1.1; filter:drop-shadow(0 0 7px currentColor); flex:0 0 28px; text-align:center; }
+.arsItem h4{ margin:0 0 2px; font-size:14.5px; color:#fff; letter-spacing:.02em; }
+.arsItem p{ margin:0; font-size:12.5px; color:#9fdce8; line-height:1.45; }
 .panel{ border:1px solid rgba(0,255,217,.25); background:rgba(0,255,217,.04); padding:10px 24px; border-radius:10px; color:#9fdce8; font-size:14px; line-height:1.9; }
 .sub{ color:#7fa6b8; font-size:13px; letter-spacing:.18em; margin:0; }
 
@@ -57,62 +68,182 @@ h2{ font-size:min(9vw,46px); margin:0; letter-spacing:.14em; color:#fff; text-sh
 
 #muteBtn{ position:fixed; right:12px; bottom:12px; z-index:20; padding:7px 12px; font-size:15px; letter-spacing:0; border-radius:8px; opacity:.6; }
 #muteBtn:hover{ opacity:1; }
-.btnrow{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
+.btnrow{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; align-items:center; }
+
+/* on-screen controls — only shown on touch devices during play */
+.mobctrl{ display:none; position:fixed; z-index:22; box-shadow:none; -webkit-tap-highlight-color:transparent; }
+body.mobile.ingame .mobctrl{ display:flex; }
+body.mobile.ingame #muteBtn{ display:none; }
+#pauseBtn{ right:14px; top:14px; width:42px; height:42px; border-radius:11px; align-items:center; justify-content:center;
+  font-size:14px; letter-spacing:2px; color:#bfeefc; border:1.5px solid rgba(0,255,217,.4); background:rgba(2,24,32,.5); padding:0; }
+#pauseBtn:active{ transform:scale(.9); background:rgba(0,255,217,.18); }
+#dashBtn{ right:24px; bottom:30px; width:76px; height:76px; border-radius:50%; flex-direction:column; gap:1px;
+  align-items:center; justify-content:center; font-size:34px; line-height:1; color:#bffff2;
+  border:2px solid rgba(0,255,217,.55); background:rgba(2,40,44,.42); box-shadow:0 0 18px rgba(0,255,217,.22); padding:0; }
+#dashBtn .lbl{ font-size:10px; letter-spacing:.18em; line-height:1; }
+#dashBtn.ready{ background:rgba(0,255,217,.18); box-shadow:0 0 26px rgba(0,255,217,.4); }
+#dashBtn.cooling{ opacity:.42; }
+#dashBtn.locked{ color:#5a7a86; border-color:rgba(120,150,160,.4); box-shadow:none; background:rgba(10,20,28,.42); }
+#dashBtn:active{ transform:scale(.9); }
+
+.tutH{ text-shadow:0 0 18px var(--cy),0 0 50px rgba(0,255,217,.5); }
+.tutCard{ width:min(92vw,470px); min-height:312px; border:1px solid rgba(0,255,217,.3); border-radius:16px; padding:22px 22px 26px;
+  background:linear-gradient(160deg, rgba(8,26,40,.95), rgba(4,8,18,.96)); display:flex; flex-direction:column; align-items:center; gap:12px;
+  box-shadow:0 0 30px rgba(0,255,217,.12); }
+.tutVis{ height:152px; display:flex; align-items:center; justify-content:center; }
+.tutCard h3{ margin:0; font-size:22px; color:#fff; letter-spacing:.03em; }
+.tutCard p{ margin:0; color:#bfeefc; font-size:15px; line-height:1.6; max-width:392px; }
+.tutDots{ display:flex; gap:9px; }
+.tutDots span{ width:9px; height:9px; border-radius:50%; background:rgba(255,255,255,.22); transition:.2s; }
+.tutDots span.on{ background:var(--cy); box-shadow:0 0 10px var(--cy); }
+.ghostbtn{ border-color:rgba(255,255,255,.2); color:#9fdce8; box-shadow:none; padding:8px 18px; font-size:12px; }
+.ghostbtn:hover{ background:rgba(255,255,255,.08); color:#fff; box-shadow:none; }
+button:disabled{ opacity:.3; cursor:default; pointer-events:none; }
+
+.dim{ color:#7fd9cc; }
+.cyglow{ text-shadow:0 0 18px var(--cy),0 0 50px rgba(0,255,217,.5); }
+.mainrow{ margin-top:2px; }
+.optrow{ display:flex; gap:14px 30px; flex-wrap:wrap; justify-content:center; align-items:center; margin-top:2px; }
+.optgroup{ display:flex; align-items:center; gap:8px; }
+.optlabel{ font-size:11px; letter-spacing:.22em; color:#7fa6b8; text-transform:uppercase; }
+.opt{ font:inherit; cursor:pointer; background:transparent; color:#9fdce8; border:1px solid rgba(0,255,217,.28); padding:6px 14px; font-size:12px; letter-spacing:.1em; border-radius:7px; text-transform:uppercase; transition:.13s; }
+.opt:hover{ border-color:var(--cy); color:#fff; }
+.opt.on{ background:var(--cy); color:#03131a; border-color:var(--cy); box-shadow:0 0 12px rgba(0,255,217,.4); }
+
+/* ---------- light theme ---------- */
+body.light{ background:#dbe6f1; color:#1a3a44; }
+body.light .overlay{ background:radial-gradient(ellipse at center, rgba(228,237,246,.80), rgba(198,213,229,.93)); }
+body.light .title{ color:#0b2b35; text-shadow:0 0 10px rgba(0,150,130,.35); animation:none; }
+body.light .tag, body.light .sub, body.light .optlabel{ color:#456773; }
+body.light h2{ color:#0b2b35; }
+body.light .cyglow{ text-shadow:0 0 16px rgba(0,150,130,.4); }
+body.light .panel{ border-color:rgba(0,150,130,.3); background:rgba(0,150,130,.06); color:#2a5560; }
+body.light .panel b{ color:#0b2b35; }
+body.light .dim{ color:#0a8f7d; }
+body.light button{ color:#067a68; border-color:#1aa68f; box-shadow:0 0 12px rgba(0,150,130,.18), inset 0 0 14px rgba(0,150,130,.05); }
+body.light button:hover{ background:#1aa68f; color:#f0fffb; box-shadow:0 0 22px rgba(0,150,130,.4); }
+body.light .opt{ color:#067a68; border-color:rgba(0,150,130,.4); }
+body.light .opt:hover{ border-color:#1aa68f; color:#0b2b35; }
+body.light .opt.on{ background:#1aa68f; color:#f0fffb; border-color:#1aa68f; box-shadow:0 0 12px rgba(0,150,130,.3); }
+body.light .brandLogo{ filter:drop-shadow(0 0 12px rgba(237,28,36,.3)); }
+body.light .card{ background:linear-gradient(160deg, rgba(248,252,253,.96), rgba(228,240,244,.97)); border-color:rgba(0,150,130,.28); }
+body.light .card h3{ color:#0b2b35; }
+body.light .card p{ color:#3a5c66; }
+body.light .card .pips{ color:#0a8f7d; }
+body.light .stats{ color:#2a5560; }
+body.light .stats b{ color:#0b2b35; text-shadow:none; }
+body.light .stats .nb{ color:#b8860b; text-shadow:none; }
+body.light .lbPanel{ background:rgba(0,150,130,.06); border-color:rgba(0,150,130,.22); }
+body.light .lbPanel h4{ color:#0a8f7d; }
+body.light .lbRow{ color:#2a5560; }
+body.light .lbRow.me{ color:#b8860b; text-shadow:none; }
+body.light .lbRow .rk{ color:#6a93a0; }
+body.light .lbForm input{ background:rgba(0,150,130,.05); border-color:rgba(0,150,130,.4); color:#0b2b35; }
+body.light .tutCard{ background:linear-gradient(160deg, rgba(248,252,253,.97), rgba(230,241,245,.98)); border-color:rgba(0,150,130,.28); box-shadow:0 0 26px rgba(0,150,130,.12); }
+body.light .tutCard h3{ color:#0b2b35; }
+body.light .tutCard p{ color:#3a5c66; }
+body.light .tutDots span{ background:rgba(0,80,70,.25); }
+body.light .tutDots span.on{ background:#1aa68f; box-shadow:0 0 10px #1aa68f; }
+body.light .arsItem{ background:rgba(248,252,253,.75); border-color:rgba(0,150,130,.22); }
+body.light .arsItem h4{ color:#0b2b35; }
+body.light .arsItem p{ color:#3a5c66; }
+body.light .arsSection{ color:#0a8f7d; }
+body.light .ghostbtn{ color:#456773; border-color:rgba(0,80,70,.25); }
+body.light .ghostbtn:hover{ background:rgba(0,80,70,.08); color:#0b2b35; }
+body.light #muteBtn{ color:#067a68; }
 </style>
 </head>
 <body>
 <canvas id="game"></canvas>
 
 <div class="overlay" id="menu">
-  <h1 class="title">NEON SWARM</h1>
-  <p class="tag">endless arena survival</p>
-  <div class="panel">
-    <b style="color:#fff">WASD / arrows</b> move &nbsp;·&nbsp; <b style="color:#fff">SPACE</b> dash &nbsp;·&nbsp; weapons fire on their own<br>
-    <b style="color:#fff">P</b> pause &nbsp;·&nbsp; <b style="color:#fff">M</b> mute &nbsp;·&nbsp; touch: drag to move, second finger to dash
+  <h1 class="title">BGW ELECTRO SHOOTER</h1>
+  <img class="brandLogo" src="assets/bgw_logo_dark.svg" alt="BGW Electronics">
+  <div class="panel" data-i18n-html="controls"></div>
+  <p class="sub" data-i18n="menuSub"></p>
+  <div class="btnrow mainrow">
+    <button id="howToBtn" class="small" data-i18n="howto">HOW TO PLAY</button>
+    <button id="startBtn" data-i18n="start">ENERGIZE THE GRID</button>
+    <button id="powerBtn" class="small" data-i18n="powerups">POWER-UPS</button>
   </div>
-  <p class="sub">collect XP · choose upgrades · slay the OVERMIND at 5:00</p>
-  <button id="startBtn">ENTER THE ARENA</button>
+  <div class="optrow">
+    <div class="optgroup">
+      <span class="optlabel" data-i18n="theme">THEME</span>
+      <button class="opt" data-theme="dark" data-i18n="themeDark">DARK</button>
+      <button class="opt" data-theme="light" data-i18n="themeLight">LIGHT</button>
+    </div>
+    <div class="optgroup">
+      <span class="optlabel" data-i18n="language">LANGUAGE</span>
+      <button class="opt" data-lang="hr">HRVATSKI</button>
+      <button class="opt" data-lang="en">ENGLISH</button>
+    </div>
+  </div>
   <p class="sub" id="menuBest"></p>
   <div class="lbPanel hidden" id="menuBoard"></div>
 </div>
 
+<div class="overlay hidden" id="tutorial">
+  <h2 class="tutH" data-i18n="howtoTitle">HOW TO PLAY</h2>
+  <div class="tutCard">
+    <div class="tutVis" id="tutVis"></div>
+    <h3 id="tutHead"></h3>
+    <p id="tutBody"></p>
+  </div>
+  <div class="tutDots" id="tutDots"></div>
+  <div class="btnrow">
+    <button id="tutPrev" class="small" data-i18n="back">◀ BACK</button>
+    <button id="tutNext">NEXT ▶</button>
+  </div>
+  <button id="tutSkip" class="ghostbtn" data-i18n="skip">SKIP INTRO</button>
+</div>
+
 <div class="overlay hidden" id="levelup">
-  <h2>LEVEL UP</h2>
-  <p class="sub">CHOOSE AN UPGRADE — CLICK OR PRESS 1 / 2 / 3</p>
+  <h2 data-i18n="levelup">LEVEL UP</h2>
+  <p class="sub" data-i18n="levelupSub">CHOOSE AN UPGRADE — CLICK OR PRESS 1 / 2 / 3</p>
   <div class="cards" id="cards"></div>
 </div>
 
 <div class="overlay hidden" id="pause">
-  <h2 style="text-shadow:0 0 18px var(--cy),0 0 50px rgba(0,255,217,.5)">PAUSED</h2>
-  <div class="panel">WASD move · SPACE dash · M mute</div>
-  <button id="resumeBtn">RESUME [P]</button>
+  <h2 class="cyglow" data-i18n="paused">PAUSED</h2>
+  <div class="panel" data-i18n="pauseHint">WASD move · SPACE dash · M mute</div>
+  <button id="resumeBtn" data-i18n="resume">RESUME [P]</button>
 </div>
 
 <div class="overlay hidden" id="over">
-  <h2 id="overTitle">SIGNAL LOST</h2>
+  <h2 id="overTitle" data-i18n="gridDown">GRID DOWN</h2>
   <div class="stats" id="overStats"></div>
   <div class="lbForm hidden" id="lbForm">
     <input id="nameInput" maxlength="16" spellcheck="false" autocomplete="off" placeholder="YOUR NAME">
-    <button id="submitScoreBtn" class="small">SUBMIT</button>
+    <button id="submitScoreBtn" class="small" data-i18n="submit">SUBMIT</button>
   </div>
   <p class="sub hidden" id="lbStatus"></p>
   <div class="lbPanel hidden" id="overBoard"></div>
-  <button id="restartBtn">RESTART [R]</button>
+  <button id="restartBtn" data-i18n="restart">RESTART [R]</button>
 </div>
 
 <div class="overlay hidden" id="win">
-  <h2>OVERMIND DESTROYED</h2>
-  <p class="sub">THE SWARM ONLY GROWS ANGRIER…</p>
+  <h2 data-i18n="winTitle">OVERLOAD PURGED</h2>
+  <p class="sub" data-i18n="winSub">THE GRID HOLDS — BUT THE LOAD KEEPS RISING…</p>
   <div class="stats" id="winStats"></div>
   <div class="btnrow">
-    <button id="continueBtn">KEEP FIGHTING [ENTER]</button>
-    <button id="restartBtn2" class="small">RESTART [R]</button>
+    <button id="continueBtn" data-i18n="keepDef">KEEP DEFENDING [ENTER]</button>
+    <button id="restartBtn2" class="small" data-i18n="restart">RESTART [R]</button>
   </div>
 </div>
 
+<div class="overlay hidden" id="arsenal">
+  <h2 class="tutH" data-i18n="powerupsTitle">POWER-UPS</h2>
+  <p class="sub" data-i18n="powerupsSub">everything you can find during a run</p>
+  <div class="arsenalScroll" id="arsenalList"></div>
+  <button id="arsenalBack" data-i18n="back">◀ BACK</button>
+</div>
+
 <button id="muteBtn" title="toggle sound [M]">🔊</button>
+<button id="pauseBtn" class="mobctrl" aria-label="pause">❚❚</button>
+<button id="dashBtn" class="mobctrl" aria-label="dash">»<span class="lbl">DASH</span></button>
 
 <script src="core.js"></script>
+<script src="i18n.js"></script>
 <script src="game.js"></script>
 <script src="main.js"></script>
 <script src="leaderboard.js"></script>
