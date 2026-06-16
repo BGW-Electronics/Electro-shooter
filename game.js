@@ -63,8 +63,10 @@ function hitEnemy(e, dmg, kx, ky) {
   if (kx || ky) { e.kb.x += kx; e.kb.y += ky; }
   addText(dmg, e.x, e.y, crit);
   sfx("hit");
-  if (state.passives.siphon && state.player.hp > 0) {
-    state.player.hp = Math.min(state.player.maxhp, state.player.hp + dmg * siphonFrac());
+  if (state.passives.siphon && state.player.hp > 0 && state.player.siphonBudget > 0) {
+    const heal = Math.min(dmg * siphonFrac(), state.player.siphonBudget);
+    state.player.siphonBudget -= heal;
+    state.player.hp = Math.min(state.player.maxhp, state.player.hp + heal);
   }
   if (e.hp <= 0) killEnemy(e);
 }
@@ -97,19 +99,18 @@ function killEnemy(e) {
     }
   }
   if (e.elite) {
-    state.pickups.push({ kind: "heart", x: e.x, y: e.y, ph: rand(0, TAU) });
-    if (Math.random() < 0.3) state.pickups.push({ kind: "nuke", x: e.x + 24, y: e.y, ph: rand(0, TAU) });
+    state.pickups.push({ kind: "heart", x: e.x, y: e.y, ph: rand(0, TAU), life: 16 });
+    if (Math.random() < 0.12) state.pickups.push({ kind: "nuke", x: e.x + 24, y: e.y, ph: rand(0, TAU), life: 16 });
     addShake(7, 0.3);
   } else {
-    if (Math.random() < 0.03) state.pickups.push({ kind: "heart", x: e.x, y: e.y, ph: rand(0, TAU) });
-    else if (Math.random() < 0.0035) state.pickups.push({ kind: "nuke", x: e.x, y: e.y, ph: rand(0, TAU) });
+    if (Math.random() < 0.006) state.pickups.push({ kind: "heart", x: e.x, y: e.y, ph: rand(0, TAU), life: 13 });
+    else if (Math.random() < 0.0018) state.pickups.push({ kind: "nuke", x: e.x, y: e.y, ph: rand(0, TAU), life: 13 });
   }
 }
 
 function damagePlayer(d) {
   const p = state.player;
   if (p.ifr > 0 || p.dashT > 0 || state.mode !== "playing") return;
-  d *= (1 - faradayBlock());
   p.hp -= d;
   p.ifr = 0.6;
   state.hurtT = 0.55;
@@ -159,12 +160,14 @@ function edgeSpawn(margin) {
 function spawnEnemy(type, elite, pos) {
   const d = ETYPES[type];
   const t = state.time;
-  const hpScale  = 1.15 + (t / 60) * 0.55 + Math.pow(t / 60, 1.5) * 0.14 + state.hyper * 0.8;
-  const dmgScale = 1.06 + (t / 60) * 0.12 + state.hyper * 0.2;
+  const hpScale  = 1.0 + (t / 60) * 0.45 + Math.pow(t / 60, 1.5) * 0.13 + state.hyper * 0.85;
+  const dmgScale = 1.0 + (t / 60) * 0.16 + state.hyper * 0.22;
+  /* enemies speed up over time so they punch through the player's AoE bubble */
+  const spdScale = 1 + (t / 60) * 0.05 + state.hyper * 0.1;
   const sp = pos || edgeSpawn();
   const e = {
     type, x: sp.x, y: sp.y,
-    r: d.r, hp: d.hp * hpScale, spd: rand(d.spd[0], d.spd[1]),
+    r: d.r, hp: d.hp * hpScale, spd: rand(d.spd[0], d.spd[1]) * spdScale,
     dmg: d.dmg * dmgScale, xp: d.xp, score: d.score,
     col: d.col, shape: d.shape,
     flash: 0, hitcd: 0, elite: !!elite, dead: false,
@@ -204,7 +207,7 @@ function onBossDeath(b) {
   state.bossesKilled++;
   state.hyper++;
   dropGems(b.x, b.y, 60);
-  for (let i = 0; i < 3; i++) state.pickups.push({ kind: "heart", x: b.x + rand(-40, 40), y: b.y + rand(-40, 40), ph: rand(0, TAU) });
+  for (let i = 0; i < 3; i++) state.pickups.push({ kind: "heart", x: b.x + rand(-40, 40), y: b.y + rand(-40, 40), ph: rand(0, TAU), life: 18 });
   state.flash = 0.8;
   addShake(24, 0.8);
   state.bossT = 240;
@@ -218,7 +221,8 @@ function pickType() {
   if (t > 40)  pool.push(["speedy", 55 + t * 0.08]);
   if (t > 90)  pool.push(["tank", 30 + t * 0.05]);
   if (t > 140) pool.push(["splitter", 30]);
-  if (t > 200) pool.push(["shooter", 28]);
+  /* ranged actuators ramp up — they punish a player who just camps the centre */
+  if (t > 120) pool.push(["shooter", 26 + Math.max(0, t - 120) * 0.32]);
   let total = 0;
   for (const p of pool) total += p[1];
   let r = Math.random() * total;
@@ -234,15 +238,20 @@ function director(dt) {
   }
 
   state.spawnT -= dt;
-  let interval = clamp(1.15 - tm * 0.0028 - state.hyper * 0.1, 0.16, 1.15);
-  if (state.boss) interval *= 1.5;
-  if (state.spawnT <= 0 && state.enemies.length < 240) {
+  const CAP = 240;
+  let interval = clamp(1.0 - tm * 0.003 - state.hyper * 0.1, 0.16, 1.0);
+  if (state.boss) interval *= 1.35;
+  if (state.spawnT <= 0 && state.enemies.length < CAP) {
     state.spawnT = interval;
-    const type = pickType();
-    spawnEnemy(type);
-    if (tm > 60 && Math.random() < 0.1) {
-      const sp = edgeSpawn();
-      for (let i = 0; i < 3; i++) spawnEnemy(type, false, { x: sp.x + rand(-50, 50), y: sp.y + rand(-50, 50) });
+    /* spawn more per wave as the run goes on — the swarm should pressure, not just pile up */
+    const batch = state.boss ? 1 : Math.min(3, 1 + Math.floor(tm / 120));
+    for (let b = 0; b < batch && state.enemies.length < CAP; b++) {
+      const type = pickType();
+      spawnEnemy(type);
+      if (tm > 60 && Math.random() < 0.1) {
+        const sp = edgeSpawn();
+        for (let i = 0; i < 3; i++) spawnEnemy(type, false, { x: sp.x + rand(-55, 55), y: sp.y + rand(-55, 55) });
+      }
     }
   }
 
@@ -413,24 +422,6 @@ function updateWeapons(dt) {
       }
     }
   }
-
-  /* faraday shield — aura ticks damage + knockback; block applied in damagePlayer */
-  const wfa = state.weapons.faraday;
-  if (wfa.lvl > 0) {
-    const s = FARADAY[wfa.lvl - 1];
-    wfa.cd -= dt;
-    if (wfa.cd <= 0) {
-      wfa.cd = 0.35;
-      for (const e of state.enemies) {
-        if (e.dead || e.boss) continue;
-        const rr = s.r + e.r;
-        if (dist2(p.x, p.y, e.x, e.y) < rr * rr) {
-          const d = Math.max(1, Math.hypot(e.x - p.x, e.y - p.y));
-          hitEnemy(e, s.dmg, ((e.x - p.x) / d) * 220, ((e.y - p.y) / d) * 220);
-        }
-      }
-    }
-  }
 }
 
 function updateFields(dt) {
@@ -534,10 +525,6 @@ function updateNovas(dt) {
         hitEnemy(e, n.dmg, ((e.x - n.x) / dd) * 220, ((e.y - n.y) / dd) * 220);
       }
     }
-    for (const b of state.ebullets) {
-      const d = Math.hypot(b.x - n.x, b.y - n.y);
-      if (Math.abs(d - n.r) < 16) { b.dead = true; burst(b.x, b.y, "120,255,220", 3, 100, 2, 0.3); }
-    }
   }
   state.novas = state.novas.filter(n => !n.dead);
 }
@@ -598,14 +585,15 @@ function updateEnemies(dt) {
       const dx = p.x - e.x, dy = p.y - e.y, d = Math.max(1, Math.hypot(dx, dy));
       let mvx = 0, mvy = 0;
       if (e.type === "shooter") {
-        if (d > 300)      { mvx = (dx / d) * e.spd; mvy = (dy / d) * e.spd; }
-        else if (d < 215) { mvx = -(dx / d) * e.spd; mvy = -(dy / d) * e.spd; }
+        /* hover beyond the player's AoE so they survive to keep shooting */
+        if (d > 560)      { mvx = (dx / d) * e.spd; mvy = (dy / d) * e.spd; }
+        else if (d < 440) { mvx = -(dx / d) * e.spd; mvy = -(dy / d) * e.spd; }
         else              { mvx = (-dy / d) * e.spd * 0.6 * e.strafe; mvy = (dx / d) * e.spd * 0.6 * e.strafe; }
         e.fireT -= dt;
-        if (e.fireT <= 0 && d < 560) {
-          e.fireT = Math.max(1.2, 2.4 - state.time * 0.002);
-          const a = Math.atan2(dy, dx) + rand(-0.06, 0.06);
-          state.ebullets.push({ x: e.x, y: e.y, vx: Math.cos(a) * 230, vy: Math.sin(a) * 230, r: 5, dmg: e.dmg * 1.5, life: 4 });
+        if (e.fireT <= 0 && d < 760) {
+          e.fireT = Math.max(0.7, 2.2 - state.time * 0.004);
+          const a = Math.atan2(dy, dx) + rand(-0.05, 0.05);
+          state.ebullets.push({ x: e.x, y: e.y, vx: Math.cos(a) * 275, vy: Math.sin(a) * 275, r: 5, dmg: e.dmg * 1.4, life: 4.5 });
         }
       } else {
         mvx = (dx / d) * e.spd; mvy = (dy / d) * e.spd;
@@ -664,6 +652,8 @@ function updatePlayer(dt) {
   const p = state.player;
   p.ifr -= dt; p.dashCd -= dt;
   if (state.dashLockMsgT > 0) state.dashLockMsgT -= dt;
+  p.siphonClock -= dt;
+  if (p.siphonClock <= 0) { p.siphonClock = 1; p.siphonBudget = siphonCapPS(); }
   let sp = moveSpeed();
   let mx, my;
   if (p.dashT > 0) {
@@ -726,13 +716,14 @@ function updateGems(dt) {
 function updatePickups(dt) {
   const p = state.player, mr = magnetR();
   for (const u of state.pickups) {
+    if (u.life !== undefined) { u.life -= dt; if (u.life <= 0) { u.dead = true; continue; } }
     const dx = p.x - u.x, dy = p.y - u.y, d = Math.max(0.5, Math.hypot(dx, dy));
     if (d < mr * 0.8) { u.x += (dx / d) * 300 * dt; u.y += (dy / d) * 300 * dt; }
     if (d < p.r + 13) {
       u.dead = true;
       if (u.kind === "heart") {
-        p.hp = Math.min(p.maxhp, p.hp + 20);
-        addText("+20", p.x, p.y - 20, false, "#ff7eb0");
+        p.hp = Math.min(p.maxhp, p.hp + 15);
+        addText("+15", p.x, p.y - 20, false, "#ff7eb0");
         sfx("heart");
       } else if (u.kind === "nuke") {
         doNuke();

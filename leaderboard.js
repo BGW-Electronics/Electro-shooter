@@ -18,11 +18,12 @@ function lbEsc(s) {
   return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
-async function lbFetch() {
+async function lbFetch(bust) {
   try {
     const ctl = new AbortController();
     const tid = setTimeout(() => ctl.abort(), 6000);
-    const r = await fetch(LB.api, { signal: ctl.signal });
+    const url = bust ? LB.api + "?t=" + Date.now() : LB.api;
+    const r = await fetch(url, { signal: ctl.signal });
     clearTimeout(tid);
     if (!r.ok) throw new Error("http " + r.status);
     const j = await r.json();
@@ -102,7 +103,7 @@ async function lbSubmit() {
     document.getElementById("lbForm").classList.add("hidden");
     status.textContent = t("lbRank", j.rank, name);
     status.classList.remove("hidden");
-    await lbFetch();
+    await lbFetch(true);
     board.innerHTML = `<h4>${t("lbTop10")}</h4>` + lbRowsHTML(LB.cache, 10, name, LB.run.score);
     board.classList.remove("hidden");
     sfx("levelup");

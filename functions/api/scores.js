@@ -19,7 +19,8 @@ export async function onRequestGet({ env }) {
   const { results } = await env.DB.prepare(
     "SELECT name, score, time FROM scores ORDER BY score DESC, id ASC LIMIT 100"
   ).all();
-  return Response.json({ scores: results }, { headers: { "Cache-Control": "no-store" } });
+  /* brief cache to cut redundant DB reads; submitters bypass it with a cache-buster */
+  return Response.json({ scores: results }, { headers: { "Cache-Control": "public, max-age=10" } });
 }
 
 export async function onRequestPost({ request, env }) {
@@ -38,7 +39,10 @@ export async function onRequestPost({ request, env }) {
   if (score > time * 600 + 10000) return bad("score implausible for time");
 
   const ip = request.headers.get("cf-connecting-ip") || "unknown";
-  const iph = await sha256("neon-swarm|" + ip);
+  /* secret salt (set `wrangler secret put IP_SALT`) makes the hash non-brute-forceable;
+     falls back to a static salt so it still works before the secret is configured */
+  const salt = env.IP_SALT || "neon-swarm";
+  const iph = await sha256(salt + "|" + ip);
   const recent = await env.DB.prepare(
     "SELECT COUNT(*) AS c FROM scores WHERE ip_hash = ?1 AND created_at > datetime('now', '-10 minutes')"
   ).bind(iph).first("c");

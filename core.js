@@ -285,13 +285,6 @@ const RAIL = [
   { int: 1.7, dmg: 82,  w: 17, range: 900 },
   { int: 1.4, dmg: 105, w: 20, range: 1000 },
 ];
-const FARADAY = [
-  { r: 55, dmg: 5,  block: 0.15 },
-  { r: 62, dmg: 7,  block: 0.20 },
-  { r: 70, dmg: 9,  block: 0.28 },
-  { r: 78, dmg: 12, block: 0.35 },
-  { r: 90, dmg: 16, block: 0.45 },
-];
 
 const WEAPON_DEFS = {
   blaster:   { icon: "✦", css: "#7fd4ff", table: BLASTER,
@@ -304,8 +297,8 @@ const WEAPON_DEFS = {
             hr: ["2 zavojnice kruže oko jezgre i ranjavaju dodirom", "+1 zavojnica", "+1 zavojnica, brža vrtnja", "+1 zavojnica, +šteta", "+2 zavojnice, maks. snaga"] } },
   nova:      { icon: "◎", css: "#5dffc9", table: NOVA,
     name: { en: "EMP Pulse", hr: "EMP Puls" },
-    desc: { en: ["Periodic EMP shockwave — also wipes enemy shots", "Bigger, stronger", "Faster recharge", "Bigger, stronger", "Massive EMP"],
-            hr: ["Povremeni EMP val — briše i neprijateljske hice", "Veći, jači", "Brže punjenje", "Veći, jači", "Ogroman EMP"] } },
+    desc: { en: ["Periodic shockwave that blasts everything around you", "Bigger, stronger", "Faster recharge", "Bigger, stronger", "Massive EMP"],
+            hr: ["Povremeni val koji razbija sve oko tebe", "Veći, jači", "Brže punjenje", "Veći, jači", "Ogroman EMP"] } },
   lightning: { icon: "⚡", css: "#ffe75e", table: LIGHTNING,
     name: { en: "Tesla Arc", hr: "Tesla Luk" },
     desc: { en: ["Zaps the nearest component, arcs between foes", "+1 chain", "+1 chain, +damage", "+1 chain", "+2 chains, max power"],
@@ -322,10 +315,6 @@ const WEAPON_DEFS = {
     name: { en: "Railgun", hr: "Topnjača" },
     desc: { en: ["Charges and fires a piercing beam through a line of enemies", "+damage, longer beam", "Faster fire, +damage", "Wider beam, +damage", "Faster fire, max power"],
             hr: ["Nabija i ispaljuje probojnu zraku kroz red neprijatelja", "+šteta, duža zraka", "Brže pucanje, +šteta", "Šira zraka, +šteta", "Brže pucanje, maks. snaga"] } },
-  faraday:   { icon: "✺", css: "#86f7ff", table: FARADAY,
-    name: { en: "Faraday Shield", hr: "Faradayev Kavez" },
-    desc: { en: ["A shield aura shocks nearby enemies and blocks some contact damage", "Bigger aura, +damage", "+block, +damage", "Bigger aura, +block", "+damage, max power"],
-            hr: ["Štitna aura šokira bliske neprijatelje i blokira dio kontaktne štete", "Veća aura, +šteta", "+blok, +šteta", "Veća aura, +blok", "+šteta, maks. snaga"] } },
 };
 
 const PASSIVE_DEFS = {
@@ -335,7 +324,7 @@ const PASSIVE_DEFS = {
   vitality: { icon: "▮", css: "#ff5e9a", name: { en: "Capacitor Bank", hr: "Banka Kondenzatora" }, desc: { en: "+20 max HP, recharge 20", hr: "+20 maks. HP, napuni 20" } },
   magnet:   { icon: "◉", css: "#5de1ff", name: { en: "Magnetic Field", hr: "Magnetsko Polje" }, desc: { en: "+35% pickup range", hr: "+35% dometa skupljanja" } },
   regen:    { icon: "✚", css: "#a1ff5e", name: { en: "Trickle Charge", hr: "Sporo Punjenje" }, desc: { en: "+0.6 HP/s recharge", hr: "+0.6 HP/s punjenje" } },
-  siphon:   { icon: "♥", css: "#ff96c0", name: { en: "Energy Siphon", hr: "Energetski Sifon" }, desc: { en: "Heal a little for every point of damage you deal", hr: "Lječi malo za svaku štetu koju naneseš" } },
+  siphon:   { icon: "♥", css: "#ff96c0", name: { en: "Energy Siphon", hr: "Energetski Sifon" }, desc: { en: "Heal for a little of the damage you deal", hr: "Lječi dio štete koju naneseš" } },
   overvolt: { icon: "★", css: "#ffcf4d", name: { en: "Overvolt", hr: "Prenapon" }, desc: { en: "+crit chance and +crit damage", hr: "+šansa i +šteta kritičnog udara" } },
 };
 
@@ -380,7 +369,7 @@ function newGame() {
     player: {
       x: 0, y: 0, r: 12, hp: 100, maxhp: 100, baseSpeed: 235,
       ifr: 1.5, dashCd: 0, dashT: 0, dashDx: 1, dashDy: 0,
-      face: 0, moveAng: 0, muzzle: 0,
+      face: 0, moveAng: 0, muzzle: 0, siphonBudget: 0, siphonClock: 0,
     },
     weapons: {
       blaster:   { lvl: 1, cd: 0.5 },
@@ -390,10 +379,9 @@ function newGame() {
       missile:   { lvl: 0, cd: 0 },
       statics:   { lvl: 0, cd: 0 },
       railgun:   { lvl: 0, cd: 0 },
-      faraday:   { lvl: 0, cd: 0 },
     },
     passives: { damage: 0, rate: 0, speed: 0, vitality: 0, magnet: 0, regen: 0, siphon: 0, overvolt: 0 },
-    dashTaken: 0, dashUnlocked: false, dashCdMax: 7, dashLockMsgT: 0,
+    dashTaken: 0, dashUnlocked: false, dashCdMax: 7, dashLockMsgT: 0, forcedOffered: {},
     level: 1, xp: 0, xpNeed: xpNeedFor(1), pendingUps: 0,
     enemies: [], bullets: [], ebullets: [], gems: [], pickups: [],
     missiles: [], novas: [], bolts: [], parts: [], texts: [],
@@ -412,8 +400,10 @@ function dmgMul()      { return 1 + 0.12 * state.passives.damage; }
 function rateMul()     { return 1 + 0.10 * state.passives.rate; }
 function moveSpeed()   { return state.player.baseSpeed * (1 + 0.09 * state.passives.speed); }
 function magnetR()     { return 95 * (1 + 0.35 * state.passives.magnet); }
-function regenRate()   { return 0.6 * state.passives.regen; }
-function siphonFrac()  { return 0.01 * state.passives.siphon; }
+function regenRate()   { return 0.4 * state.passives.regen; }
+/* lifesteal: lower per-hit % than before (0.6%/lvl vs 1%) AND capped per second so a
+   maxed build's huge DPS can't heal-tank — keeps camping lethal */
+function siphonFrac()  { return 0.006 * state.passives.siphon; }
+function siphonCapPS() { return 1.2 * state.passives.siphon; }
 function critChance()  { return 0.10 + 0.05 * state.passives.overvolt; }
 function critMult()    { return 2 + 0.2 * state.passives.overvolt; }
-function faradayBlock() { const w = state.weapons.faraday; return w.lvl > 0 ? FARADAY[w.lvl - 1].block : 0; }

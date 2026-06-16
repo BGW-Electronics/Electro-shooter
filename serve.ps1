@@ -27,6 +27,10 @@ while ($listener.IsListening) {
       $ext = [System.IO.Path]::GetExtension($file).ToLower()
       if ($mime.ContainsKey($ext)) { $res.ContentType = $mime[$ext] }
       $res.Headers.Add("Cache-Control", "no-store")
+      $res.Headers.Add("X-Content-Type-Options", "nosniff")
+      $res.Headers.Add("X-Frame-Options", "SAMEORIGIN")
+      $res.Headers.Add("Referrer-Policy", "strict-origin-when-cross-origin")
+      $res.Headers.Add("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'")
       $res.ContentLength64 = $bytes.Length
       $res.OutputStream.Write($bytes, 0, $bytes.Length)
     } else {

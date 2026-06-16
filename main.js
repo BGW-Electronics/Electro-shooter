@@ -145,17 +145,47 @@ function winGame() {
 }
 
 /* ---------------- upgrade UI ---------------- */
+/* Weapons gated behind a level — only offered from that level on. */
+const WEAPON_UNLOCK = { railgun: 20, statics: 30 };
 /* Surge Dash unlocks at LV 10, then a cooldown cut is offered every 10 levels */
 function dashCardAvailable() { return state.dashTaken < Math.min(6, Math.floor(state.level / 10)); }
-
+function weaponPoolEligible(k) {
+  if (state.weapons[k].lvl >= 5) return false;
+  const ul = WEAPON_UNLOCK[k];
+  return !ul || state.level >= ul;
+}
+/* the first time the player reaches an unlock level, that item is GUARANTEED in the
+   choices (like dash at 10); after that it just joins the random pool */
+function pendingForcedUnlock() {
+  if (!state.forcedOffered.dash && state.level >= 10 && state.dashTaken === 0) return { id: "dash", opt: { kind: "dash" } };
+  if (!state.forcedOffered.railgun && state.level >= WEAPON_UNLOCK.railgun && state.weapons.railgun.lvl === 0) return { id: "railgun", opt: { kind: "w", key: "railgun" } };
+  if (!state.forcedOffered.statics && state.level >= WEAPON_UNLOCK.statics && state.weapons.statics.lvl === 0) return { id: "statics", opt: { kind: "w", key: "statics" } };
+  return null;
+}
+/* Always offer at least one weapon and one passive; the 3rd slot is random
+   (weapon / passive / dash). A pending forced unlock still takes a guaranteed slot. */
 function rollUpgrades() {
-  const opts = [];
-  for (const k in WEAPON_DEFS) if (state.weapons[k].lvl < 5) opts.push({ kind: "w", key: k });
-  for (const k in PASSIVE_DEFS) if (state.passives[k] < 5) opts.push({ kind: "p", key: k });
-  if (dashCardAvailable()) opts.push({ kind: "dash" });   // joins the pool randomly, like any other upgrade
-  shuffle(opts);
-  const picked = opts.slice(0, 3);
+  const forced = pendingForcedUnlock();
+  const weapons = [], passives = [], extras = [];
+  for (const k in WEAPON_DEFS) if (weaponPoolEligible(k)) weapons.push({ kind: "w", key: k });
+  for (const k in PASSIVE_DEFS) if (state.passives[k] < 5) passives.push({ kind: "p", key: k });
+  if (dashCardAvailable()) extras.push({ kind: "dash" });
+  shuffle(weapons); shuffle(passives);
+
+  const picked = [], used = new Set();
+  function add(o) {
+    if (!o) return false;
+    const id = o.kind + (o.key || "");
+    if (used.has(id)) return false;
+    used.add(id); picked.push(o); return true;
+  }
+
+  if (forced) { add(forced.opt); state.forcedOffered[forced.id] = true; }
+  if (!picked.some(o => o.kind === "w")) for (const w of weapons) if (add(w)) break;   // guaranteed weapon
+  if (!picked.some(o => o.kind === "p")) for (const p of passives) if (add(p)) break;   // guaranteed passive
+  for (const o of shuffle(weapons.concat(passives, extras))) { if (picked.length >= 3) break; add(o); }
   while (picked.length < 3) picked.push({ kind: "heal" });
+  shuffle(picked);
   state.upgradeOpts = picked;
 }
 
@@ -456,13 +486,6 @@ function render() {
     ctx.lineWidth = 2.5;
     ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, TAU); ctx.stroke();
   }
-  /* faraday aura */
-  if (state.weapons.faraday.lvl > 0) {
-    const fr = FARADAY[state.weapons.faraday.lvl - 1].r;
-    ctx.strokeStyle = `rgba(134,247,255,${0.22 + 0.1 * Math.sin(state.time * 6)})`;
-    ctx.lineWidth = 9;
-    ctx.beginPath(); ctx.arc(p.x, p.y, fr, 0, TAU); ctx.stroke();
-  }
   /* railgun beams */
   for (const b of state.beams) {
     const a = b.t / 0.16;
@@ -504,16 +527,6 @@ function render() {
     ctx.beginPath(); ctx.arc(f.x, f.y, f.r - 2, 0, TAU); ctx.stroke();
     ctx.setLineDash([]);
   }
-  /* faraday aura floor ring */
-  if (state.weapons.faraday.lvl > 0) {
-    const fr = FARADAY[state.weapons.faraday.lvl - 1].r;
-    ctx.fillStyle = "rgba(134,247,255,0.05)";
-    ctx.beginPath(); ctx.arc(p.x, p.y, fr, 0, TAU); ctx.fill();
-    ctx.strokeStyle = `rgba(134,247,255,${0.4 + 0.18 * Math.sin(state.time * 6)})`;
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(p.x, p.y, fr, 0, TAU); ctx.stroke();
-  }
-
   for (const g of state.gems) {
     const r = 4 + Math.min(6, g.val * 0.8);
     ctx.save();
@@ -857,7 +870,7 @@ function arsItem(icon, color, name, desc) {
 }
 function buildArsenal() {
   let h = `<div class="arsSection">${t("arsWeapons")}</div><div class="arsGrid">`;
-  for (const k in WEAPON_DEFS) { const d = WEAPON_DEFS[k]; h += arsItem(d.icon, d.css, L(d.name), L(d.desc)[0]); }
+  for (const k in WEAPON_DEFS) { const d = WEAPON_DEFS[k]; const ul = WEAPON_UNLOCK[k]; h += arsItem(d.icon, d.css, L(d.name) + (ul ? ` · LV ${ul}` : ""), L(d.desc)[0]); }
   h += `</div><div class="arsSection">${t("arsPassives")}</div><div class="arsGrid">`;
   for (const k in PASSIVE_DEFS) { const d = PASSIVE_DEFS[k]; h += arsItem(d.icon, d.css, L(d.name), L(d.desc)); }
   h += `</div><div class="arsSection">${t("arsAbility")}</div><div class="arsGrid">`;
@@ -918,6 +931,32 @@ function setTheme(th) { if (th === "dark" || th === "light") { curTheme = th; sa
 document.querySelectorAll("[data-lang]").forEach(b => b.addEventListener("click", e => { e.currentTarget.blur(); setLang(b.getAttribute("data-lang")); }));
 document.querySelectorAll("[data-theme]").forEach(b => b.addEventListener("click", e => { e.currentTarget.blur(); setTheme(b.getAttribute("data-theme")); }));
 
+/* ---------------- demo loadout (open with ?demo) ---------------- */
+function demoLoadout() {
+  startGame();
+  const s = state, p = s.player;
+  s.weapons.blaster.lvl = 5;
+  s.weapons.lightning.lvl = 5;
+  s.weapons.orbit.lvl = 4;
+  s.weapons.nova.lvl = 4;
+  s.weapons.missile.lvl = 4;
+  s.weapons.railgun.lvl = 3;
+  s.weapons.statics.lvl = 2;
+  s.passives.damage = 4; s.passives.rate = 4; s.passives.speed = 3;
+  s.passives.vitality = 4; s.passives.magnet = 3; s.passives.regen = 2;
+  s.passives.siphon = 3; s.passives.overvolt = 4;
+  p.maxhp = 100 + 20 * s.passives.vitality; p.hp = p.maxhp; p.ifr = 2;
+  s.dashTaken = 4; s.dashUnlocked = true; s.dashCdMax = Math.max(2, 8 - s.dashTaken);
+  s.level = 50; s.xp = 0; s.xpNeed = xpNeedFor(50);
+  s.forcedOffered = { dash: true, railgun: true, statics: true };
+  s.time = 250;
+  for (let i = 0; i < 70; i++) {
+    const a = rand(0, TAU), d = rand(160, 560);
+    spawnEnemy(pickType(), i % 22 === 0, { x: p.x + Math.cos(a) * d, y: p.y + Math.sin(a) * d });
+  }
+  announce(curLang === "hr" ? "DEMO — NIVO 50" : "DEMO — LEVEL 50");
+}
+
 /* ---------------- boot ---------------- */
 resize();
 newGame();
@@ -927,15 +966,28 @@ applyLang();
 updateMuteBtn(false);
 requestAnimationFrame(frame);
 
-/* first-time players get the intro demo automatically */
-let seenTut = false;
-try { seenTut = !!localStorage.getItem("bgw_seen_tut"); } catch (e) {}
-if (!seenTut) openTutorial("intro");
+/* debug helpers (state access, ?demo loadout) are exposed only when running
+   locally — never on the deployed site, so they can't be used to tamper there */
+const IS_LOCAL = location.protocol === "file:" ||
+  /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[?::1\]?)$/.test(location.hostname);
 
-/* debug handle (used by automated tests) */
-window.__NS = {
-  get state() { return state; },
-  startGame, gainXP, spawnEnemy, spawnBoss, damagePlayer, openUpgrades, chooseUpgrade, doNuke,
-  tryDash, openTutorial, tutNext, get tutOpen() { return tutOpen; }, rollUpgrades,
-  openArsenal, setLang, setTheme, get lang() { return curLang; }, get theme() { return curTheme; },
-};
+const wantsDemo = IS_LOCAL && location.search.indexOf("demo") >= 0;
+if (wantsDemo) {
+  AudioSys.init();
+  demoLoadout();
+} else {
+  /* first-time players get the intro demo automatically */
+  let seenTut = false;
+  try { seenTut = !!localStorage.getItem("bgw_seen_tut"); } catch (e) {}
+  if (!seenTut) openTutorial("intro");
+}
+
+if (IS_LOCAL) {
+  window.__NS = {
+    get state() { return state; },
+    startGame, gainXP, spawnEnemy, spawnBoss, damagePlayer, openUpgrades, chooseUpgrade, doNuke,
+    tryDash, openTutorial, tutNext, get tutOpen() { return tutOpen; }, rollUpgrades,
+    openArsenal, setLang, setTheme, get lang() { return curLang; }, get theme() { return curTheme; },
+    demo: demoLoadout,
+  };
+}
