@@ -87,6 +87,7 @@ const LANG = {
     lbRank: "RANK #{0} — GRID SECURED, {1}", lbOffline: "GLOBAL LEADERBOARD OFFLINE — DEPLOYED VERSION ONLY", lbSubmitFail: "SUBMIT FAILED — ",
     /* announcements */
     bossOnline: "⚡ THE OVERLOAD ONLINE ⚡", bossRedef: "⚡ OVERLOAD PURGED — IT WILL REBUILD ⚡",
+    bossWin: "⚡ OVERLOAD PURGED — HYPER MODE ⚡",
     elite: "⚠ POWER SPIKE — OVERCHARGED UNIT ⚠",
     dashLockLv: "⚡ SURGE DASH UNLOCKS AT LEVEL 10", dashLockBuy: "⚡ PICK THE SURGE DASH UPGRADE TO USE IT",
     dashOnline: "⚡ SURGE DASH ONLINE — SHIFT / SPACE", dashCd: "⚡ DASH COOLDOWN → {0}s",
@@ -98,9 +99,9 @@ const LANG = {
     /* menu */
     start: "START", howto: "KAKO IGRATI", powerups: "POJAČANJA",
     menuSub: "skupljaj naboj · nadograđuj mrežu · preživi PREOPTEREĆENJE na 5:00",
-    controls: `<b>WASD / strelice</b> kretanje &nbsp;·&nbsp; obrana puca sama &nbsp;·&nbsp; <b>SHIFT / SPACE</b> nalet <span class="dim">(otključava se LV 10)</span><br><b>P</b> pauza &nbsp;·&nbsp; <b>M</b> zvuk &nbsp;·&nbsp; dodir: povuci za kretanje, drugi prst za nalet`,
+    controls: `<b>WASD / strelice</b> kretanje &nbsp;·&nbsp; obrana puca sama &nbsp;·&nbsp; <b>SHIFT / SPACE</b> nalet <span class="dim">(otključava se LV 10)</span><br><b>P</b> pauza &nbsp;·&nbsp; <b>M</b> zvuk &nbsp;·&nbsp;`,
     theme: "TEMA", themeDark: "TAMNA", themeLight: "SVIJETLA", language: "JEZIK",
-    menuBestRecord: "rekord {0} · najduže {1}", menuBestFirst: "prva smjena — zaštiti mrežu",
+    menuBestRecord: "rekord {0} · najduže {1}", menuBestFirst: "",
     /* level up */
     levelup: "NOVI NIVO", levelupSub: "ODABERI POJAČANJE — KLIKNI ILI PRITISNI 1 / 2 / 3",
     newWeapon: "NOVO ORUŽJE", unlockPower: "OTKLJUČAJ · POJAČANJE",
@@ -137,6 +138,7 @@ const LANG = {
     lbRank: "MJESTO #{0} — MREŽA OSIGURANA, {1}", lbOffline: "GLOBALNA LJESTVICA NEDOSTUPNA — SAMO U OBJAVLJENOJ VERZIJI", lbSubmitFail: "SLANJE NEUSPJEŠNO — ",
     /* announcements */
     bossOnline: "⚡ PREOPTEREĆENJE AKTIVNO ⚡", bossRedef: "⚡ PREOPTEREĆENJE UNIŠTENO — VRATIT ĆE SE ⚡",
+    bossWin: "⚡ PREOPTEREĆENJE UNIŠTENO — HIPER NAČIN ⚡",
     elite: "⚠ NAPONSKI UDAR — PREOPTEREĆENA JEDINICA ⚠",
     dashLockLv: "⚡ ENERGETSKI NALET SE OTKLJUČAVA NA NIVOU 10", dashLockBuy: "⚡ ODABERI POJAČANJE ENERGETSKI NALET DA GA KORISTIŠ",
     dashOnline: "⚡ ENERGETSKI NALET AKTIVAN — SHIFT / SPACE", dashCd: "⚡ HLAĐENJE NALETA → {0}s",

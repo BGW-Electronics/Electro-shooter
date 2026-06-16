@@ -211,7 +211,8 @@ function onBossDeath(b) {
   state.flash = 0.8;
   addShake(24, 0.8);
   state.bossT = 240;
-  if (!state.won) { state.won = true; winGame(); }
+  state.player.ifr = Math.max(state.player.ifr, 2);   // brief breather, then keep playing
+  if (!state.won) { state.won = true; sfx("win"); announce(t("bossWin")); }
   else announce(t("bossRedef"));
 }
 

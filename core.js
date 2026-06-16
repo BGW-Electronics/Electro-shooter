@@ -19,7 +19,7 @@ function fmtTime(t) { const m = Math.floor(t / 60), s = Math.floor(t % 60); retu
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 let W = innerWidth, H = innerHeight;
-const DPR = Math.min(window.devicePixelRatio || 1, 2);
+const DPR = Math.min(window.devicePixelRatio || 1, 3);
 let vigDark = null, vigHurt = null;
 /* true only for actual phones/tablets — NOT touch-capable laptops (which keep
    the full desktop view). a laptop with a touchscreen still has a fine pointer. */

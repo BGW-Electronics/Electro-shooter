@@ -682,56 +682,61 @@ function hudBar(x, y, w, h, frac, col) {
 
 function drawHUD() {
   const p = state.player;
-  /* HP + XP */
-  hudBar(16, 16, 232, 15, p.hp / p.maxhp, p.hp / p.maxhp > 0.35 ? "rgba(90,255,170,0.9)" : "rgba(255,80,110,0.95)");
-  ctx.font = "700 11px 'Segoe UI'";
+  const M = IS_MOBILE;
+  const bx = M ? 12 : 16, bw = M ? Math.min(150, W * 0.38) : 232;
+  const hpY = M ? 12 : 16, xpY = M ? 28 : 36, rx = W - (M ? 12 : 16);
+
+  /* HP + XP + LV (top-left) */
+  hudBar(bx, hpY, bw, M ? 12 : 15, p.hp / p.maxhp, p.hp / p.maxhp > 0.35 ? "rgba(90,255,170,0.9)" : "rgba(255,80,110,0.95)");
+  ctx.font = "700 " + (M ? 10 : 11) + "px 'Segoe UI'";
   ctx.fillStyle = "#dffaff";
   ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  ctx.fillText(Math.ceil(p.hp) + " / " + p.maxhp, 16 + 116, 16 + 8);
-  hudBar(16, 36, 232, 9, state.xp / state.xpNeed, "rgba(0,255,217,0.9)");
+  ctx.fillText(Math.ceil(p.hp) + " / " + p.maxhp, bx + bw / 2, hpY + (M ? 6 : 7.5));
+  hudBar(bx, xpY, bw, M ? 7 : 9, state.xp / state.xpNeed, "rgba(0,255,217,0.9)");
   ctx.textAlign = "left";
   ctx.font = "700 13px 'Segoe UI'";
   ctx.fillStyle = "#9ff5ff";
-  ctx.fillText("LV " + state.level, 16, 58);
+  ctx.fillText("LV " + state.level, bx, M ? 50 : 58);
 
-  /* weapon chips */
-  ctx.font = "600 14px 'Segoe UI'";
-  let wx = 16;
+  /* weapon chips — top-left under LV on mobile, bottom-left on desktop */
+  const chipY = M ? 68 : H - 22, chipGap = M ? 40 : 52;
+  ctx.font = "600 " + (M ? 12 : 14) + "px 'Segoe UI'";
+  let wx = bx;
   for (const k in WEAPON_DEFS) {
     const lvl = state.weapons[k].lvl;
     if (lvl <= 0) continue;
     ctx.fillStyle = WEAPON_DEFS[k].css;
-    ctx.fillText(WEAPON_DEFS[k].icon + " " + lvl, wx, H - 22);
-    wx += 52;
+    ctx.fillText(WEAPON_DEFS[k].icon + " " + lvl, wx, chipY);
+    wx += chipGap;
   }
 
-  /* timer */
+  /* timer (top-centre, smaller on mobile so it clears the HP bar) */
   ctx.textAlign = "center";
-  ctx.font = "800 30px 'Segoe UI'";
+  ctx.font = "800 " + (M ? 22 : 30) + "px 'Segoe UI'";
   ctx.shadowColor = "rgba(0,255,217,0.8)"; ctx.shadowBlur = 14;
   ctx.fillStyle = "#ffffff";
-  ctx.fillText(fmtTime(state.time), W / 2, 32);
+  ctx.fillText(fmtTime(state.time), W / 2, M ? 26 : 32);
   ctx.shadowBlur = 0;
 
   /* boss bar */
   if (state.boss) {
-    const bw = Math.min(440, W - 280), bx = (W - bw) / 2, by = 56;
+    const bbw = Math.min(440, W - (M ? 130 : 280)), bbx = (W - bbw) / 2, bby = M ? 78 : 56;
     ctx.font = "700 12px 'Segoe UI'";
     ctx.fillStyle = "#ff9db4";
-    ctx.fillText(t("bossName"), W / 2, by + 2);
-    hudBar(bx, by + 10, bw, 11, state.boss.hp / state.boss.maxhp, "rgba(255,60,90,0.95)");
+    ctx.fillText(t("bossName"), W / 2, bby + 2);
+    hudBar(bbx, bby + 10, bbw, 11, state.boss.hp / state.boss.maxhp, "rgba(255,60,90,0.95)");
   }
 
-  /* score block (pushed down on touch to clear the corner buttons) */
-  const sy0 = IS_MOBILE ? 64 : 26;
+  /* score block (top-right; pause moved to bottom on mobile so this stays up top) */
+  const sy0 = 26;
   ctx.textAlign = "right";
-  ctx.font = "800 20px 'Segoe UI'";
+  ctx.font = "800 " + (M ? 17 : 20) + "px 'Segoe UI'";
   ctx.fillStyle = "#ffffff";
-  ctx.fillText(Math.floor(state.score).toLocaleString(), W - 16, sy0);
-  ctx.font = "600 12px 'Segoe UI'";
+  ctx.fillText(Math.floor(state.score).toLocaleString(), rx, sy0);
+  ctx.font = "600 " + (M ? 11 : 12) + "px 'Segoe UI'";
   ctx.fillStyle = "#8fd0e0";
-  ctx.fillText(t("statKills") + " " + state.kills, W - 16, sy0 + 20);
-  ctx.fillText(t("statBest") + " " + Math.max(bestData.score, Math.floor(state.score)).toLocaleString(), W - 16, sy0 + 36);
+  ctx.fillText(t("statKills") + " " + state.kills, rx, sy0 + (M ? 18 : 20));
+  ctx.fillText(t("statBest") + " " + Math.max(bestData.score, Math.floor(state.score)).toLocaleString(), rx, sy0 + (M ? 33 : 36));
 
   /* dash indicator — on mobile the on-screen DASH button replaces this ring */
   if (!IS_MOBILE) {

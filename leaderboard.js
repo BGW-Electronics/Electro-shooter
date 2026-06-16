@@ -50,7 +50,7 @@ async function lbRenderMenu() {
   if (!el) return;
   await lbFetch();
   if (!LB.available) return; /* stays hidden in local play */
-  el.innerHTML = `<h4>${t("lbMenuTitle")}</h4>` + lbRowsHTML(LB.cache, 5);
+  el.innerHTML = `<h4>${t("lbMenuTitle")}</h4>` + lbRowsHTML(LB.cache, 10);
   el.classList.remove("hidden");
 }
 

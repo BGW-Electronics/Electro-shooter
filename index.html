@@ -74,10 +74,10 @@ h2{ font-size:min(9vw,46px); margin:0; letter-spacing:.14em; color:#fff; text-sh
 .mobctrl{ display:none; position:fixed; z-index:22; box-shadow:none; -webkit-tap-highlight-color:transparent; }
 body.mobile.ingame .mobctrl{ display:flex; }
 body.mobile.ingame #muteBtn{ display:none; }
-#pauseBtn{ right:14px; top:14px; width:42px; height:42px; border-radius:11px; align-items:center; justify-content:center;
-  font-size:14px; letter-spacing:2px; color:#bfeefc; border:1.5px solid rgba(0,255,217,.4); background:rgba(2,24,32,.5); padding:0; }
+#pauseBtn{ right:18px; bottom:38px; width:46px; height:46px; border-radius:12px; align-items:center; justify-content:center;
+  font-size:15px; letter-spacing:2px; color:#bfeefc; border:1.5px solid rgba(0,255,217,.4); background:rgba(2,24,32,.5); padding:0; }
 #pauseBtn:active{ transform:scale(.9); background:rgba(0,255,217,.18); }
-#dashBtn{ right:24px; bottom:30px; width:76px; height:76px; border-radius:50%; flex-direction:column; gap:1px;
+#dashBtn{ left:22px; bottom:30px; width:76px; height:76px; border-radius:50%; flex-direction:column; gap:1px;
   align-items:center; justify-content:center; font-size:34px; line-height:1; color:#bffff2;
   border:2px solid rgba(0,255,217,.55); background:rgba(2,40,44,.42); box-shadow:0 0 18px rgba(0,255,217,.22); padding:0; }
 #dashBtn .lbl{ font-size:10px; letter-spacing:.18em; line-height:1; }
@@ -85,6 +85,19 @@ body.mobile.ingame #muteBtn{ display:none; }
 #dashBtn.cooling{ opacity:.42; }
 #dashBtn.locked{ color:#5a7a86; border-color:rgba(120,150,160,.4); box-shadow:none; background:rgba(10,20,28,.42); }
 #dashBtn:active{ transform:scale(.9); }
+
+/* compact, scrollable menu on phones */
+body.mobile #menu{ justify-content:flex-start; overflow-y:auto; -webkit-overflow-scrolling:touch; gap:9px; padding:16px 14px 44px; }
+body.mobile .title{ font-size:min(7.2vw,30px); letter-spacing:.03em; }
+body.mobile .brandLogo{ width:min(54vw,210px); margin:0; }
+body.mobile .panel{ font-size:12px; padding:8px 14px; line-height:1.55; max-width:360px; }
+body.mobile .sub{ font-size:12px; letter-spacing:.08em; }
+body.mobile .mainrow{ flex-wrap:wrap; width:100%; max-width:360px; gap:10px; }
+body.mobile #startBtn{ order:-1; flex:1 0 100%; font-size:21px; padding:16px; }
+body.mobile .mainrow .small{ flex:1; font-size:13px; padding:12px 6px; }
+body.mobile .optrow{ gap:8px 18px; }
+body.mobile .lbPanel{ width:100%; max-width:360px; min-width:0; }
+body.mobile #menuBoard{ max-height:236px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
 
 .tutH{ text-shadow:0 0 18px var(--cy),0 0 50px rgba(0,255,217,.5); }
 .tutCard{ width:min(92vw,470px); min-height:312px; border:1px solid rgba(0,255,217,.3); border-radius:16px; padding:22px 22px 26px;
