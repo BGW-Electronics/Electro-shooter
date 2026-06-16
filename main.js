@@ -29,6 +29,7 @@ addEventListener("keydown", e => {
   if (e.repeat) return;
   if (tutOpen) { tutHandleKey(e); return; }
   if (arsenalOpen) { if (e.code === "Escape" || e.code === "Enter" || e.code === "Backspace") closeArsenal(); return; }
+  if (bestiaryOpen) { if (e.code === "Escape" || e.code === "Enter" || e.code === "Backspace") closeBestiary(); return; }
   const m = state.mode;
   if (e.code === "KeyM") { updateMuteBtn(AudioSys.toggleMute()); return; }
   if (m === "menu") {
@@ -609,6 +610,16 @@ function render() {
   const blink = p.ifr > 0 && p.dashT <= 0 && Math.floor(state.time * 18) % 2 === 0;
   const fa = p.face || p.moveAng;
   const L = p.r * 4.2, recoil = p.muzzle > 0 ? -3 : 0;
+
+  /* invulnerability shield ring — level-up grant, hit-mercy & boss breather */
+  if (p.ifr > 0 && p.dashT <= 0) {
+    const sr = p.r * 2.15, pulse = 0.5 + 0.35 * Math.sin(state.time * 16);
+    drawGlow(p.x, p.y, sr * 1.2, "0,255,217", pulse * 0.45);
+    ctx.strokeStyle = `rgba(150,255,238,${pulse})`;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(p.x, p.y, sr, 0, TAU); ctx.stroke();
+  }
+
   ctx.globalAlpha = blink ? 0.5 : 1;
 
   /* barrel turret BEHIND the logo (rotates toward nearest enemy, recoils when firing) */
@@ -891,6 +902,47 @@ function closeArsenal() { arsenalOpen = false; hide($("arsenal")); show(menuEl);
 $("powerBtn").onclick = e => { e.currentTarget.blur(); AudioSys.init(); openArsenal(); };
 $("arsenalBack").onclick = e => { e.currentTarget.blur(); closeArsenal(); };
 
+/* ---------------- enemy bestiary ---------------- */
+let bestiaryOpen = false;
+const BESTIARY = [
+  { svg: `<svg viewBox="0 0 44 44"><g transform="translate(22,22)"><line x1="-20" y1="0" x2="20" y2="0" stroke="#b9c6d6" stroke-width="3" stroke-linecap="round"/><rect x="-13" y="-7" width="26" height="14" rx="7" fill="#ff8040"/><rect x="-6" y="-7" width="3" height="14" fill="#7a3a17"/><rect x="2" y="-7" width="3" height="14" fill="#7a3a17"/></g></svg>`,
+    name: { en: "Resistor", hr: "Otpornik" },
+    desc: { en: "The basic swarmer — heads straight for you. Weak alone, deadly in numbers.", hr: "Osnovni rojnik — ide ravno na tebe. Slab sam, smrtonosan u masi." } },
+  { svg: `<svg viewBox="0 0 44 44"><g transform="translate(22,22)"><line x1="-18" y1="0" x2="18" y2="0" stroke="#b9c6d6" stroke-width="3" stroke-linecap="round"/><polygon points="-11,-11 9,0 -11,11" fill="#ffe054"/><line x1="9" y1="-12" x2="9" y2="12" stroke="#fff2a0" stroke-width="3"/></g></svg>`,
+    name: { en: "Diode", hr: "Dioda" },
+    desc: { en: "Fast and fragile — rushes you from 0:40 on. Don't let it close the gap.", hr: "Brza i krhka — juri na tebe od 0:40. Ne daj joj da priđe." } },
+  { svg: `<svg viewBox="0 0 44 44"><g transform="translate(22,22)"><rect x="-16" y="-13" width="11" height="26" rx="3" fill="#968cff"/><rect x="5" y="-13" width="11" height="26" rx="3" fill="#968cff"/><line x1="-2" y1="-15" x2="-2" y2="15" stroke="#cfc8ff" stroke-width="3"/></g></svg>`,
+    name: { en: "Transformer", hr: "Transformator" },
+    desc: { en: "Slow but heavily armoured — soaks a lot of fire. Shows up from 1:30.", hr: "Spor ali oklopljen — upija puno vatre. Pojavljuje se od 1:30." } },
+  { svg: `<svg viewBox="0 0 44 44"><g transform="translate(22,17)"><line x1="-7" y1="5" x2="-7" y2="17" stroke="#b9c6d6" stroke-width="2.5"/><line x1="0" y1="5" x2="0" y2="17" stroke="#b9c6d6" stroke-width="2.5"/><line x1="7" y1="5" x2="7" y2="17" stroke="#b9c6d6" stroke-width="2.5"/><path d="M-13,5 L13,5 A13,13 0 0 1 -13,5 Z" fill="#50eb8c"/></g></svg>`,
+    name: { en: "Transistor", hr: "Tranzistor" },
+    desc: { en: "Bursts into a cluster of Electrons when destroyed. Arrives from 2:20.", hr: "Raspadne se u roj Elektrona kad ga uništiš. Stiže od 2:20." } },
+  { svg: `<svg viewBox="0 0 44 44"><g transform="translate(22,22)"><circle r="11" fill="#96ffcd"/><line x1="-6" y1="0" x2="6" y2="0" stroke="#fff" stroke-width="3"/></g></svg>`,
+    name: { en: "Electron", hr: "Elektron" },
+    desc: { en: "Tiny and quick — spawned when a Transistor breaks apart.", hr: "Sitan i brz — nastaje kad se Tranzistor raspadne." } },
+  { svg: `<svg viewBox="0 0 44 44"><g transform="translate(20,22)"><rect x="-15" y="-11" width="24" height="22" rx="5" fill="#5a2d70"/><line x1="-8" y1="-11" x2="-8" y2="11" stroke="#e178ff" stroke-width="3"/><line x1="3" y1="-11" x2="3" y2="11" stroke="#e178ff" stroke-width="3"/><circle cx="18" cy="0" r="5" fill="#efb0ff"/></g></svg>`,
+    name: { en: "Actuator", hr: "Aktuator" },
+    desc: { en: "Keeps its distance and fires charges at you — punishes camping. From 2:00.", hr: "Drži distancu i puca naboje na tebe — kažnjava kemping. Od 2:00." } },
+  { svg: `<svg viewBox="0 0 44 44"><g transform="translate(22,22)"><circle r="19" fill="none" stroke="#ffd24a" stroke-width="2.5"/><rect x="-12" y="-6" width="24" height="12" rx="6" fill="#ff8040"/></g></svg>`,
+    name: { en: "Overcharged unit", hr: "Prenapunjena jedinica" },
+    desc: { en: "A gold-ringed elite — far tougher and hits harder, but drops a battery. One appears about every minute.", hr: "Zlatno-obrubljena elita — puno žilavija i jača, ali ispušta bateriju. Pojavi se otprilike svake minute." } },
+  { svg: `<svg viewBox="0 0 44 44"><g transform="translate(22,22)"><polygon points="18,0 9,15.6 -9,15.6 -18,0 -9,-15.6 9,-15.6" fill="#7a1428" stroke="#ff2850" stroke-width="2.5"/><polygon points="9,0 4.5,7.8 -4.5,7.8 -9,0 -4.5,-7.8 4.5,-7.8" fill="#ff2850"/><circle r="5" fill="#fff2b0"/></g></svg>`,
+    name: { en: "The Overload (boss)", hr: "Preopterećenje (boss)" },
+    desc: { en: "Arrives at 5:00 with radial bullet bursts and telegraphed charges. Beat it to win — then it rebuilds, stronger.", hr: "Stiže na 5:00 s kružnim rafalima i najavljenim naletima. Pobijedi ga da pobijediš — pa se vraća, jači." } },
+];
+function buildBestiary() {
+  let h = `<div class="arsGrid">`;
+  for (const e of BESTIARY) {
+    h += `<div class="arsItem"><div class="bestIcon">${e.svg}</div><div><h4>${L(e.name)}</h4><p>${L(e.desc)}</p></div></div>`;
+  }
+  h += `</div>`;
+  $("enemyList").innerHTML = h;
+}
+function openBestiary() { bestiaryOpen = true; buildBestiary(); hide(menuEl); show($("enemies")); }
+function closeBestiary() { bestiaryOpen = false; hide($("enemies")); show(menuEl); }
+$("enemyBtn").onclick = e => { e.currentTarget.blur(); AudioSys.init(); openBestiary(); };
+$("enemyBack").onclick = e => { e.currentTarget.blur(); closeBestiary(); };
+
 /* company logo → drawn as the player avatar (pre-rasterised once for speed) */
 const logoImg = new Image();
 let logoCanvas = null;
@@ -917,6 +969,7 @@ function applyLang() {
   document.querySelectorAll("[data-lang]").forEach(b => b.classList.toggle("on", b.getAttribute("data-lang") === curLang));
   updateMenuBest();
   if (arsenalOpen) buildArsenal();
+  if (bestiaryOpen) buildBestiary();
   if (tutOpen) renderTut();
   if (typeof lbRenderMenu === "function") lbRenderMenu();
 }

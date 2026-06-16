@@ -141,6 +141,7 @@ function gainXP(v) {
     state.level++;
     state.xpNeed = xpNeedFor(state.level);
     state.pendingUps++;
+    state.player.ifr = Math.max(state.player.ifr, 1);   // 1s invulnerability shield on level-up
   }
 }
 
@@ -160,8 +161,8 @@ function edgeSpawn(margin) {
 function spawnEnemy(type, elite, pos) {
   const d = ETYPES[type];
   const t = state.time;
-  const hpScale  = 1.0 + (t / 60) * 0.45 + Math.pow(t / 60, 1.5) * 0.13 + state.hyper * 0.85;
-  const dmgScale = 1.0 + (t / 60) * 0.16 + state.hyper * 0.22;
+  const hpScale  = 1.0 + (t / 60) * 0.20 + Math.pow(t / 60, 1.5) * 0.05 + state.hyper * 0.8;
+  const dmgScale = 1.0 + (t / 60) * 0.10 + state.hyper * 0.22;
   /* enemies speed up over time so they punch through the player's AoE bubble */
   const spdScale = 1 + (t / 60) * 0.05 + state.hyper * 0.1;
   const sp = pos || edgeSpawn();
@@ -220,7 +221,7 @@ function pickType() {
   const t = state.time;
   const pool = [["chaser", 100]];
   if (t > 40)  pool.push(["speedy", 55 + t * 0.08]);
-  if (t > 90)  pool.push(["tank", 30 + t * 0.05]);
+  if (t > 90)  pool.push(["tank", 18 + t * 0.03]);
   if (t > 140) pool.push(["splitter", 30]);
   /* ranged actuators ramp up — they punish a player who just camps the centre */
   if (t > 120) pool.push(["shooter", 26 + Math.max(0, t - 120) * 0.32]);
@@ -239,19 +240,19 @@ function director(dt) {
   }
 
   state.spawnT -= dt;
-  const CAP = 240;
-  let interval = clamp(1.0 - tm * 0.003 - state.hyper * 0.1, 0.16, 1.0);
+  /* gentle during the climb (hyper 0); ramps up hard once you've beaten the Overload */
+  const CAP = 165 + state.hyper * 60;
+  let interval = clamp(1.15 - tm * 0.0024 - state.hyper * 0.16, 0.14, 1.15);
   if (state.boss) interval *= 1.35;
   if (state.spawnT <= 0 && state.enemies.length < CAP) {
     state.spawnT = interval;
-    /* spawn more per wave as the run goes on — the swarm should pressure, not just pile up */
-    const batch = state.boss ? 1 : Math.min(3, 1 + Math.floor(tm / 120));
+    const batch = state.boss ? 1 : Math.min(3, 1 + Math.floor(tm / 150)) + Math.min(2, state.hyper);
     for (let b = 0; b < batch && state.enemies.length < CAP; b++) {
       const type = pickType();
       spawnEnemy(type);
-      if (tm > 60 && Math.random() < 0.1) {
+      if (tm > 120 && Math.random() < 0.06) {
         const sp = edgeSpawn();
-        for (let i = 0; i < 3; i++) spawnEnemy(type, false, { x: sp.x + rand(-55, 55), y: sp.y + rand(-55, 55) });
+        for (let i = 0; i < 2; i++) spawnEnemy(type, false, { x: sp.x + rand(-50, 50), y: sp.y + rand(-50, 50) });
       }
     }
   }
@@ -592,7 +593,7 @@ function updateEnemies(dt) {
         else              { mvx = (-dy / d) * e.spd * 0.6 * e.strafe; mvy = (dx / d) * e.spd * 0.6 * e.strafe; }
         e.fireT -= dt;
         if (e.fireT <= 0 && d < 760) {
-          e.fireT = Math.max(0.7, 2.2 - state.time * 0.004);
+          e.fireT = Math.max(0.95, 3.5 - state.time * 0.0035);
           const a = Math.atan2(dy, dx) + rand(-0.05, 0.05);
           state.ebullets.push({ x: e.x, y: e.y, vx: Math.cos(a) * 275, vy: Math.sin(a) * 275, r: 5, dmg: e.dmg * 1.4, life: 4.5 });
         }

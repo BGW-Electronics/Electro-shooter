@@ -76,6 +76,7 @@ const LANG = {
     tut5h: "Survive the Overload", tut5b: "Waves grow stronger and gold elites appear every minute. At 5:00 the OVERLOAD boss strikes. Grab green batteries to heal and yellow EMPs to wipe the screen.",
     /* arsenal */
     powerupsTitle: "POWER-UPS", powerupsSub: "everything you can find during a run",
+    enemies: "ENEMIES", enemiesTitle: "ENEMIES", enemiesSub: "the rogue components you'll face",
     arsWeapons: "Weapons — auto-fire, each levels up to 5", arsPassives: "Passives — stack for bigger boosts", arsAbility: "Ability & pickups",
     surgeDashCodex: "Unlocks at level 10. Dash (SHIFT / SPACE or the on-screen button) for a fast burst with brief invulnerability — slip through enemies. Every 10 levels you can cut its cooldown (starts at 7s).",
     batteryName: "Battery", batteryDesc: "Dropped by elites and bosses — instantly restores 20 HP.",
@@ -127,6 +128,7 @@ const LANG = {
     tut5h: "Preživi Preopterećenje", tut5b: "Valovi jačaju, a zlatne elite se pojavljuju svake minute. Na 5:00 napada boss PREOPTEREĆENJE. Skupljaj zelene baterije za lječenje i žute EMP-ove da očistiš ekran.",
     /* arsenal */
     powerupsTitle: "POJAČANJA", powerupsSub: "sve što možeš naći tijekom igre",
+    enemies: "PROTIVNICI", enemiesTitle: "PROTIVNICI", enemiesSub: "odmetnute komponente protiv kojih se boriš",
     arsWeapons: "Oružja — pucaju sama, svako ide do nivoa 5", arsPassives: "Pasivna — slažu se za veći boost", arsAbility: "Sposobnost i predmeti",
     surgeDashCodex: "Otključava se na nivou 10. Nalet (SHIFT / SPACE ili gumb na ekranu) za brzi trzaj uz kratku neranjivost — proklizni kroz neprijatelje. Svakih 10 nivoa možeš skratiti hlađenje (počinje na 7s).",
     batteryName: "Baterija", batteryDesc: "Ispuštaju je elite i bossovi — odmah vraća 20 HP.",

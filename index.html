@@ -28,6 +28,8 @@ canvas#game{ position:fixed; inset:0; display:block; touch-action:none; }
 .arsGrid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(232px,1fr)); gap:9px; }
 .arsItem{ display:flex; gap:11px; align-items:flex-start; border:1px solid rgba(0,255,217,.16); border-radius:10px; padding:9px 12px; background:rgba(8,22,34,.55); text-align:left; }
 .arsItem .ai{ font-size:25px; line-height:1.1; filter:drop-shadow(0 0 7px currentColor); flex:0 0 28px; text-align:center; }
+.bestIcon{ flex:0 0 40px; display:flex; align-items:center; justify-content:center; }
+.bestIcon svg{ width:38px; height:38px; }
 .arsItem h4{ margin:0 0 2px; font-size:14.5px; color:#fff; letter-spacing:.02em; }
 .arsItem p{ margin:0; font-size:12.5px; color:#9fdce8; line-height:1.45; }
 .panel{ border:1px solid rgba(0,255,217,.25); background:rgba(0,255,217,.04); padding:10px 24px; border-radius:10px; color:#9fdce8; font-size:14px; line-height:1.9; }
@@ -92,9 +94,10 @@ body.mobile .title{ font-size:min(7.2vw,30px); letter-spacing:.03em; }
 body.mobile .brandLogo{ width:min(54vw,210px); margin:0; }
 body.mobile .panel{ font-size:12px; padding:8px 14px; line-height:1.55; max-width:360px; }
 body.mobile .sub{ font-size:12px; letter-spacing:.08em; }
-body.mobile .mainrow{ flex-wrap:wrap; width:100%; max-width:360px; gap:10px; }
-body.mobile #startBtn{ order:-1; flex:1 0 100%; font-size:21px; padding:16px; }
-body.mobile .mainrow .small{ flex:1; font-size:13px; padding:12px 6px; }
+body.mobile .mainrow{ width:100%; max-width:360px; }
+body.mobile #startBtn{ width:100%; font-size:21px; padding:16px; }
+body.mobile .subrow{ flex-wrap:wrap; width:100%; max-width:360px; gap:8px; }
+body.mobile .subrow .small{ flex:1; min-width:0; font-size:12px; padding:11px 3px; letter-spacing:.06em; }
 body.mobile .optrow{ gap:8px 18px; }
 body.mobile .lbPanel{ width:100%; max-width:360px; min-width:0; }
 body.mobile #menuBoard{ max-height:236px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
@@ -175,9 +178,12 @@ body.light #muteBtn{ color:#067a68; }
   <div class="panel" data-i18n-html="controls"></div>
   <p class="sub" data-i18n="menuSub"></p>
   <div class="btnrow mainrow">
+    <button id="startBtn" data-i18n="start">START</button>
+  </div>
+  <div class="btnrow subrow">
     <button id="howToBtn" class="small" data-i18n="howto">HOW TO PLAY</button>
-    <button id="startBtn" data-i18n="start">ENERGIZE THE GRID</button>
     <button id="powerBtn" class="small" data-i18n="powerups">POWER-UPS</button>
+    <button id="enemyBtn" class="small" data-i18n="enemies">ENEMIES</button>
   </div>
   <div class="optrow">
     <div class="optgroup">
@@ -249,6 +255,13 @@ body.light #muteBtn{ color:#067a68; }
   <p class="sub" data-i18n="powerupsSub">everything you can find during a run</p>
   <div class="arsenalScroll" id="arsenalList"></div>
   <button id="arsenalBack" data-i18n="back">◀ BACK</button>
+</div>
+
+<div class="overlay hidden" id="enemies">
+  <h2 class="tutH" data-i18n="enemiesTitle">ENEMIES</h2>
+  <p class="sub" data-i18n="enemiesSub">the rogue components you'll face</p>
+  <div class="arsenalScroll" id="enemyList"></div>
+  <button id="enemyBack" data-i18n="back">◀ BACK</button>
 </div>
 
 <button id="muteBtn" title="toggle sound [M]">🔊</button>

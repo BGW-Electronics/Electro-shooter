@@ -333,10 +333,10 @@ const PASSIVE_DEFS = {
 const ETYPES = {
   chaser:   { r: 13, hp: 16, spd: [68, 95],   dmg: 10, xp: 1, score: 10, col: "255,128,64",  shape: 0 },
   speedy:   { r: 9,  hp: 9,  spd: [150, 180], dmg: 7,  xp: 1, score: 15, col: "255,224,84",  shape: 3 },
-  tank:     { r: 24, hp: 85, spd: [38, 50],   dmg: 18, xp: 4, score: 40, col: "150,140,255", shape: 6 },
+  tank:     { r: 24, hp: 68, spd: [38, 50],   dmg: 18, xp: 4, score: 40, col: "150,140,255", shape: 6 },
   splitter: { r: 17, hp: 34, spd: [60, 75],   dmg: 12, xp: 2, score: 30, col: "80,235,140",  shape: 4 },
   mini:     { r: 8,  hp: 7,  spd: [120, 150], dmg: 6,  xp: 1, score: 8,  col: "150,255,205", shape: 0 },
-  shooter:  { r: 13, hp: 26, spd: [52, 62],   dmg: 8,  xp: 3, score: 35, col: "225,120,255", shape: 5 },
+  shooter:  { r: 13, hp: 22, spd: [52, 62],   dmg: 8,  xp: 3, score: 35, col: "225,120,255", shape: 5 },
 };
 
 const UNLOCKS = [
