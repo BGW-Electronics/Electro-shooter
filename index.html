@@ -4,7 +4,21 @@
 <meta charset="utf-8">
 <title>BGW Electro Shooter</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='42' fill='%2300ffd9'/></svg>">
+<meta name="description" content="BGW Electro Shooter — a neon arena shooter by BGW Electronics. Defend the grid against rogue components and climb the global leaderboard.">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<link rel="canonical" href="https://electro-shooter.com/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="BGW Electro Shooter">
+<meta property="og:description" content="Defend the grid against rogue components and climb the global leaderboard.">
+<meta property="og:url" content="https://electro-shooter.com/">
+<meta property="og:image" content="https://electro-shooter.com/assets/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="BGW Electro Shooter">
+<meta name="twitter:description" content="Defend the grid against rogue components and climb the global leaderboard.">
+<meta name="twitter:image" content="https://electro-shooter.com/assets/og-card.png">
 <style>
 :root{ --cy:#00ffd9; --mg:#ff2d95; }
 *{ box-sizing:border-box; -webkit-user-select:none; user-select:none; }
@@ -41,7 +55,7 @@ button:hover{ background:var(--cy); color:#03131a; box-shadow:0 0 30px rgba(0,25
 button.small{ padding:8px 18px; font-size:13px; }
 
 h2{ font-size:min(9vw,46px); margin:0; letter-spacing:.14em; color:#fff; text-shadow:0 0 18px var(--mg),0 0 50px rgba(255,45,149,.5); }
-#levelup h2, #win h2{ text-shadow:0 0 18px var(--cy),0 0 50px rgba(0,255,217,.5); }
+#levelup h2{ text-shadow:0 0 18px var(--cy),0 0 50px rgba(0,255,217,.5); }
 
 .cards{ display:flex; gap:18px; flex-wrap:wrap; justify-content:center; max-width:880px; }
 .card{ width:228px; min-height:225px; border:1px solid rgba(0,255,217,.35); border-radius:14px; padding:18px 16px; cursor:pointer; transition:.13s; position:relative;
@@ -102,11 +116,25 @@ body.mobile .optrow{ gap:8px 18px; }
 body.mobile .lbPanel{ width:100%; max-width:360px; min-width:0; }
 body.mobile #menuBoard{ max-height:236px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
 
+/* HOW TO PLAY: same-size card, whole overlay scrolls so nothing clips */
+body.mobile #tutorial{ justify-content:flex-start; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:16px 14px 30px; gap:9px; }
+body.mobile .tutCard{ width:100%; max-width:420px; height:350px; padding:16px 16px 18px; gap:8px; }
+body.mobile .tutVis{ flex:0 0 116px; height:116px; }
+body.mobile .tutVis svg{ width:196px; height:auto; }
+body.mobile .tutCard h3{ font-size:18px; }
+body.mobile .tutCard p{ font-size:13px; line-height:1.5; }
+
+/* POWER-UPS / ENEMIES: let the whole overlay scroll on phones (single scroll area) */
+body.mobile #arsenal, body.mobile #enemies{ justify-content:flex-start; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:16px 12px 32px; gap:10px; }
+body.mobile .arsenalScroll{ max-height:none; overflow:visible; width:100%; padding:2px 2px 4px; }
+body.mobile .arsGrid{ grid-template-columns:1fr; }
+
 .tutH{ text-shadow:0 0 18px var(--cy),0 0 50px rgba(0,255,217,.5); }
-.tutCard{ width:min(92vw,470px); min-height:312px; border:1px solid rgba(0,255,217,.3); border-radius:16px; padding:22px 22px 26px;
+.tutCard{ width:min(92vw,470px); height:384px; border:1px solid rgba(0,255,217,.3); border-radius:16px; padding:22px 22px 26px;
   background:linear-gradient(160deg, rgba(8,26,40,.95), rgba(4,8,18,.96)); display:flex; flex-direction:column; align-items:center; gap:12px;
   box-shadow:0 0 30px rgba(0,255,217,.12); }
-.tutVis{ height:152px; display:flex; align-items:center; justify-content:center; }
+.tutVis{ flex:0 0 152px; height:152px; display:flex; align-items:center; justify-content:center; }
+.tutText{ flex:1; width:100%; min-height:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:9px; }
 .tutCard h3{ margin:0; font-size:22px; color:#fff; letter-spacing:.03em; }
 .tutCard p{ margin:0; color:#bfeefc; font-size:15px; line-height:1.6; max-width:392px; }
 .tutDots{ display:flex; gap:9px; }
@@ -205,8 +233,10 @@ body.light #muteBtn{ color:#067a68; }
   <h2 class="tutH" data-i18n="howtoTitle">HOW TO PLAY</h2>
   <div class="tutCard">
     <div class="tutVis" id="tutVis"></div>
-    <h3 id="tutHead"></h3>
-    <p id="tutBody"></p>
+    <div class="tutText">
+      <h3 id="tutHead"></h3>
+      <p id="tutBody"></p>
+    </div>
   </div>
   <div class="tutDots" id="tutDots"></div>
   <div class="btnrow">
@@ -238,16 +268,6 @@ body.light #muteBtn{ color:#067a68; }
   <p class="sub hidden" id="lbStatus"></p>
   <div class="lbPanel hidden" id="overBoard"></div>
   <button id="restartBtn" data-i18n="restart">RESTART [R]</button>
-</div>
-
-<div class="overlay hidden" id="win">
-  <h2 data-i18n="winTitle">OVERLOAD PURGED</h2>
-  <p class="sub" data-i18n="winSub">THE GRID HOLDS — BUT THE LOAD KEEPS RISING…</p>
-  <div class="stats" id="winStats"></div>
-  <div class="btnrow">
-    <button id="continueBtn" data-i18n="keepDef">KEEP DEFENDING [ENTER]</button>
-    <button id="restartBtn2" class="small" data-i18n="restart">RESTART [R]</button>
-  </div>
 </div>
 
 <div class="overlay hidden" id="arsenal">

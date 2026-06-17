@@ -62,18 +62,18 @@ const LANG = {
     paused: "PAUSED", pauseHint: "WASD move · SPACE dash · M mute", resume: "RESUME [P]",
     /* over / win */
     gridDown: "GRID DOWN", restart: "RESTART [R]",
-    winTitle: "OVERLOAD PURGED", winSub: "THE GRID HOLDS — BUT THE LOAD KEEPS RISING…", keepDef: "KEEP DEFENDING [ENTER]",
     /* stats */
     statUptime: "UPTIME", statLevel: "LEVEL", statKills: "KILLS", statScore: "SCORE", statBest: "BEST", statNew: " ★ NEW",
     /* HUD */
     hudDash: "DASH", hudBuy: "BUY", hudLv10: "LV 10", bossName: "THE OVERLOAD",
     /* tutorial */
     howtoTitle: "HOW TO PLAY", back: "◀ BACK", next: "NEXT ▶", startBtn2: "START ▶", done: "DONE ✓", skip: "SKIP INTRO",
-    tut1h: "Move the core", tut1b: "You are the BGW core. Move with WASD or the arrow keys — on touch, drag anywhere. Dodge the swarm to stay alive.",
+    tut1h: "Move the core", tut1b: "You are the BGW core. Move with WASD or the arrow keys — on touch, drag anywhere. Dodge the swarm to stay alive. Pause with P or ESC, mute with M.",
     tut2h: "Defenses auto-fire", tut2b: "Your weapons fire on their own at the nearest component. Focus on positioning and let the grid do the shooting.",
-    tut3h: "Harvest charge, level up", tut3b: "Destroyed components drop charge. Collect it to fill the bar and level up — then pick one of three upgrades: new weapons or stat boosts.",
+    tut3h: "Harvest charge, level up", tut3b: "Destroyed components drop charge. Collect it to fill the bar and level up — then pick one of three upgrades: new weapons or stat boosts (always at least one weapon and one passive on offer). Each level-up also briefly shields you, so push for kills.",
     tut4h: "Surge Dash — from LV 10", tut4b: "From level 10 the Surge Dash appears in your upgrade choices. Pick it to unlock dashing (SHIFT / SPACE or the on-screen button): a fast burst with brief invulnerability. Take it again every 10 levels to shorten the cooldown.",
-    tut5h: "Survive the Overload", tut5b: "Waves grow stronger and gold elites appear every minute. At 5:00 the OVERLOAD boss strikes. Grab green batteries to heal and yellow EMPs to wipe the screen.",
+    tut5h: "Survive the Overload", tut5b: "Waves grow stronger and gold elites appear every minute — each drops a battery. At 5:00 the OVERLOAD boss strikes with radial bursts. Grab green batteries to heal and yellow EMPs to wipe the screen.",
+    tut6h: "Endless — climb the board", tut6b: "There's no finish line — the grid never ends and the Overload keeps rebuilding stronger. Survive as long as you can: every run posts to the global leaderboard, so enter a name when you fall and climb the top 100.",
     /* arsenal */
     powerupsTitle: "POWER-UPS", powerupsSub: "everything you can find during a run",
     enemies: "ENEMIES", enemiesTitle: "ENEMIES", enemiesSub: "the rogue components you'll face",
@@ -92,7 +92,6 @@ const LANG = {
     elite: "⚠ POWER SPIKE — OVERCHARGED UNIT ⚠",
     dashLockLv: "⚡ SURGE DASH UNLOCKS AT LEVEL 10", dashLockBuy: "⚡ PICK THE SURGE DASH UPGRADE TO USE IT",
     dashOnline: "⚡ SURGE DASH ONLINE — SHIFT / SPACE", dashCd: "⚡ DASH COOLDOWN → {0}s",
-    overdrive: "OVERDRIVE — THE GRID DESTABILIZES",
     unlockDiodes: "◣ DIODES SURGING IN", unlockTransformers: "◉ TRANSFORMERS INBOUND",
     unlockTransistors: "◈ TRANSISTORS DESTABILIZING", unlockActuators: "✦ ACTUATORS ARMED",
   },
@@ -114,18 +113,18 @@ const LANG = {
     paused: "PAUZA", pauseHint: "WASD kretanje · SPACE nalet · M zvuk", resume: "NASTAVI [P]",
     /* over / win */
     gridDown: "MREŽA PALA", restart: "PONOVO [R]",
-    winTitle: "PREOPTEREĆENJE UNIŠTENO", winSub: "MREŽA IZDRŽAVA — ALI OPTEREĆENJE I DALJE RASTE…", keepDef: "NASTAVI BRANITI [ENTER]",
     /* stats */
     statUptime: "VRIJEME", statLevel: "NIVO", statKills: "UNIŠTENO", statScore: "REZULTAT", statBest: "REKORD", statNew: " ★ NOVO",
     /* HUD */
     hudDash: "NALET", hudBuy: "KUPI", hudLv10: "LV 10", bossName: "PREOPTEREĆENJE",
     /* tutorial */
     howtoTitle: "KAKO IGRATI", back: "◀ NATRAG", next: "DALJE ▶", startBtn2: "KRENI ▶", done: "GOTOVO ✓", skip: "PRESKOČI",
-    tut1h: "Pomiči jezgru", tut1b: "Ti si BGW jezgra. Kreći se sa WASD ili strelicama — na dodir povuci bilo gdje. Izbjegavaj roj da preživiš.",
+    tut1h: "Pomiči jezgru", tut1b: "Ti si BGW jezgra. Kreći se sa WASD ili strelicama — na dodir povuci bilo gdje. Izbjegavaj roj da preživiš. Pauza je P ili ESC, M za zvuk.",
     tut2h: "Obrana puca sama", tut2b: "Tvoje oružje puca samo na najbližu komponentu. Fokusiraj se na poziciju, a mreža neka puca.",
-    tut3h: "Skupljaj naboj, diži nivo", tut3b: "Uništene komponente ispuštaju naboj. Skupi ga da napuniš traku i digneš nivo — onda biraj jedno od tri pojačanja: novo oružje ili boost.",
+    tut3h: "Skupljaj naboj, diži nivo", tut3b: "Uništene komponente ispuštaju naboj. Skupi ga da napuniš traku i digneš nivo — onda biraj jedno od tri pojačanja: novo oružje ili boost (uvijek je u ponudi barem jedno oružje i jedan pasiv). Svaki novi nivo te i nakratko zaštiti, pa slobodno napadaj.",
     tut4h: "Energetski Nalet — od LV 10", tut4b: "Od nivoa 10 Energetski Nalet se pojavljuje među pojačanjima. Odaberi ga da otključaš nalet (SHIFT / SPACE ili gumb na ekranu): brzi trzaj uz kratku neranjivost. Uzmi ga ponovo svakih 10 nivoa da skratiš hlađenje.",
-    tut5h: "Preživi Preopterećenje", tut5b: "Valovi jačaju, a zlatne elite se pojavljuju svake minute. Na 5:00 napada boss PREOPTEREĆENJE. Skupljaj zelene baterije za lječenje i žute EMP-ove da očistiš ekran.",
+    tut5h: "Preživi Preopterećenje", tut5b: "Valovi jačaju, a zlatne elite se pojavljuju svake minute — svaka ispušta bateriju. Na 5:00 napada boss PREOPTEREĆENJE kružnim rafalima. Skupljaj zelene baterije za lječenje i žute EMP-ove da očistiš ekran.",
+    tut6h: "Bez kraja — penji se", tut6b: "Nema cilja — mreža se nikad ne zaustavlja, a Preopterećenje se vraća sve jače. Preživi što duže: svaka igra ide na globalnu ljestvicu, pa upiši ime kad padneš i penji se na top 100.",
     /* arsenal */
     powerupsTitle: "POJAČANJA", powerupsSub: "sve što možeš naći tijekom igre",
     enemies: "PROTIVNICI", enemiesTitle: "PROTIVNICI", enemiesSub: "odmetnute komponente protiv kojih se boriš",
@@ -144,7 +143,6 @@ const LANG = {
     elite: "⚠ NAPONSKI UDAR — PREOPTEREĆENA JEDINICA ⚠",
     dashLockLv: "⚡ ENERGETSKI NALET SE OTKLJUČAVA NA NIVOU 10", dashLockBuy: "⚡ ODABERI POJAČANJE ENERGETSKI NALET DA GA KORISTIŠ",
     dashOnline: "⚡ ENERGETSKI NALET AKTIVAN — SHIFT / SPACE", dashCd: "⚡ HLAĐENJE NALETA → {0}s",
-    overdrive: "OVERDRIVE — MREŽA SE DESTABILIZIRA",
     unlockDiodes: "◣ DIODE NADIRU", unlockTransformers: "◉ TRANSFORMATORI DOLAZE",
     unlockTransistors: "◈ TRANZISTORI SE DESTABILIZIRAJU", unlockActuators: "✦ AKTUATORI NAORUŽANI",
   },

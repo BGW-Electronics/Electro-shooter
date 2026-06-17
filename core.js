@@ -1,6 +1,6 @@
 "use strict";
 /* ============================================================
-   NEON SWARM — core.js
+   BGW ELECTRO SHOOTER — core.js
    utils · canvas · glow sprites · audio synth · data tables · state
    ============================================================ */
 

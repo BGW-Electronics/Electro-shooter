@@ -1,6 +1,6 @@
 "use strict";
 /* ============================================================
-   NEON SWARM — game.js
+   BGW ELECTRO SHOOTER — game.js
    combat · spawning · weapons · enemies · boss · player · update()
    ============================================================ */
 

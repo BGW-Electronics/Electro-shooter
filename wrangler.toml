@@ -1,9 +1,20 @@
-# NEON SWARM — Cloudflare Workers deploy config.
+# BGW ELECTRO SHOOTER — Cloudflare Workers deploy config.
 # Your Git build runs `npx wrangler deploy`, which reads this file.
 
 name = "electro-shooter"        # MUST match your Worker's name in the Cloudflare dashboard
 main = "worker.js"              # entry point: serves /api/scores, falls back to static files
 compatibility_date = "2026-06-01"
+
+# ---- Custom domain: electro-shooter.com ------------------------------------
+# Prereq: add electro-shooter.com as a zone in this Cloudflare account first
+# (Dashboard -> Add a site -> point your registrar's nameservers at Cloudflare).
+# Then uncomment the block below and run `npx wrangler deploy` — Wrangler will
+# create the DNS records + TLS certificate and attach the domain to this Worker.
+# (Or skip this and just click "Add Custom Domain" on the Worker in the dashboard.)
+# routes = [
+#   { pattern = "electro-shooter.com", custom_domain = true },
+#   { pattern = "www.electro-shooter.com", custom_domain = true },
+# ]
 
 # Serve the static game (index.html, core.js, game.js, main.js, leaderboard.js)
 # straight from the repo root. .assetsignore keeps server-side files unpublished.

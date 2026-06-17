@@ -1,4 +1,4 @@
-# Tiny static file server for NEON SWARM (no Node/Python needed)
+# Tiny static file server for BGW ELECTRO SHOOTER (no Node/Python needed)
 $port = 8123
 $root = $PSScriptRoot
 $mime = @{

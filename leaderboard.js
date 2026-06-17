@@ -1,6 +1,6 @@
 "use strict";
 /* ============================================================
-   NEON SWARM — leaderboard.js
+   BGW ELECTRO SHOOTER — leaderboard.js
    global top-100 via /api/scores (Cloudflare Pages Function + D1)
    degrades gracefully when the API is absent (local play)
    ============================================================ */

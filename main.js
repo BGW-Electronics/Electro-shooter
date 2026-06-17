@@ -1,6 +1,6 @@
 "use strict";
 /* ============================================================
-   NEON SWARM — main.js
+   BGW ELECTRO SHOOTER — main.js
    input · render · HUD · overlays · upgrade UI · loop · boot
    ============================================================ */
 
@@ -45,9 +45,6 @@ addEventListener("keydown", e => {
     else if (e.code === "Digit3" || e.code === "Numpad3") chooseUpgrade(2);
   } else if (m === "over") {
     if (["KeyR", "Enter", "Space"].includes(e.code)) startGame();
-  } else if (m === "win") {
-    if (e.code === "Enter" || e.code === "Space") continueRun();
-    else if (e.code === "KeyR") startGame();
   }
 });
 addEventListener("keyup", e => { keys[e.code] = false; });
@@ -74,17 +71,15 @@ document.addEventListener("visibilitychange", () => {
 
 /* ---------------- DOM glue ---------------- */
 const $ = id => document.getElementById(id);
-const menuEl = $("menu"), levelupEl = $("levelup"), pauseEl = $("pause"), overEl = $("over"), winEl = $("win");
+const menuEl = $("menu"), levelupEl = $("levelup"), pauseEl = $("pause"), overEl = $("over");
 function show(el) { el.classList.remove("hidden"); }
 function hide(el) { el.classList.add("hidden"); }
-function hideAll() { [menuEl, levelupEl, pauseEl, overEl, winEl].forEach(hide); }
+function hideAll() { [menuEl, levelupEl, pauseEl, overEl].forEach(hide); }
 
 function updateMuteBtn(muted) { $("muteBtn").textContent = muted ? "🔇" : "🔊"; }
 $("muteBtn").onclick = e => { AudioSys.init(); updateMuteBtn(AudioSys.toggleMute()); e.currentTarget.blur(); };
 $("startBtn").onclick = e => { AudioSys.init(); startGame(); e.currentTarget.blur(); };
 $("restartBtn").onclick = e => { startGame(); e.currentTarget.blur(); };
-$("restartBtn2").onclick = e => { startGame(); e.currentTarget.blur(); };
-$("continueBtn").onclick = e => { continueRun(); e.currentTarget.blur(); };
 $("resumeBtn").onclick = e => { setPause(false); e.currentTarget.blur(); };
 
 /* on-screen touch controls */
@@ -108,14 +103,6 @@ function setPause(b) {
   else if (!b && state.mode === "paused") { state.mode = "playing"; hide(pauseEl); }
 }
 
-function continueRun() {
-  if (state.mode !== "win") return;
-  hide(winEl);
-  state.mode = "playing";
-  state.player.ifr = 2;
-  announce(t("overdrive"));
-}
-
 function statRow(k, v, cls) { return `<span>${k}</span><b class="${cls || ""}">${v}</b>`; }
 
 function fillStats(el) {
@@ -136,13 +123,6 @@ function gameOver() {
   fillStats($("overStats"));
   show(overEl);
   if (typeof lbOnGameOver === "function") lbOnGameOver();
-}
-
-function winGame() {
-  state.mode = "win";
-  sfx("win");
-  fillStats($("winStats"));
-  show(winEl);
 }
 
 /* ---------------- upgrade UI ---------------- */
@@ -846,6 +826,8 @@ const TUT_SLIDES = [
     vis: `<svg viewBox="0 0 280 152" width="240" height="130"><rect x="26" y="62" width="66" height="28" rx="6" fill="#0e2740" stroke="#00ffd9"/><text x="59" y="81" text-anchor="middle" font-family="Segoe UI,sans-serif" font-weight="700" font-size="13" fill="#bffff2">SHIFT</text><circle cx="146" cy="76" r="8" fill="rgba(0,255,217,0.2)"/><circle cx="168" cy="76" r="11" fill="rgba(0,255,217,0.35)"/><circle cx="196" cy="76" r="15" fill="#eafffb"/><circle cx="196" cy="76" r="19" fill="none" stroke="#00ffd9" stroke-width="2"/><polygon points="217,76 206,82 206,70" fill="#00ffd9"/><g transform="translate(238,42)"><circle r="18" fill="#0e2740" stroke="#ffd75e" stroke-width="2"/><text y="5" text-anchor="middle" font-family="Segoe UI,sans-serif" font-weight="800" font-size="12" fill="#ffd75e">LV10</text></g></svg>` },
   { k: 5,
     vis: `<svg viewBox="0 0 280 152" width="240" height="130"><g transform="translate(66,68)"><polygon points="28,0 14,24 -14,24 -28,0 -14,-24 14,-24" fill="#7a1428" stroke="#ff2850" stroke-width="2.5"/><polygon points="16,0 8,14 -8,14 -16,0 -8,-14 8,-14" fill="#ff2850"/><circle r="8" fill="#fff2b0"/></g><text x="66" y="116" text-anchor="middle" font-family="Segoe UI,sans-serif" font-weight="700" font-size="11" fill="#ff9db4">OVERLOAD · 5:00</text><g transform="translate(168,64)"><rect x="-15" y="-11" width="28" height="22" rx="4" fill="#0a1f12" stroke="#5effa0" stroke-width="2"/><rect x="13" y="-5" width="4" height="10" fill="#5effa0"/><text x="-1" y="38" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="11" fill="#9dffc6">heal</text></g><g transform="translate(228,64)"><circle r="14" fill="none" stroke="#ffe75e" stroke-width="2"/><circle r="7" fill="none" stroke="#ffe75e" stroke-width="2" opacity="0.6"/><text x="0" y="38" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="11" fill="#ffe75e">clear</text></g></svg>` },
+  { k: 6,
+    vis: `<svg viewBox="0 0 280 152" width="240" height="130" font-family="Segoe UI,sans-serif"><g transform="translate(56,66)"><polygon points="0,-28 8,-9 28,-9 12,4 18,24 0,12 -18,24 -12,4 -28,-9 -8,-9" fill="#ffd75e" stroke="#b8902f" stroke-width="1.5"/><text y="3" text-anchor="middle" font-weight="800" font-size="13" fill="#7a5a12">1</text></g><text x="56" y="120" text-anchor="middle" font-weight="700" font-size="11" fill="#ffd75e">TOP 100</text><g transform="translate(118,40)"><rect width="144" height="22" rx="5" fill="rgba(0,255,217,0.16)" stroke="#00ffd9" stroke-width="1.5"/><text x="10" y="15" font-weight="700" font-size="11" fill="#bffff2">1</text><text x="28" y="15" font-weight="700" font-size="11" fill="#eafffb">BGW</text><text x="134" y="15" text-anchor="end" font-size="11" fill="#9fe9dc">9999</text><rect y="28" width="144" height="22" rx="5" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.15)"/><text x="10" y="43" font-weight="700" font-size="11" fill="#9fb6c4">2</text><text x="28" y="43" font-size="11" fill="#cfe0ea">· · ·</text><text x="134" y="43" text-anchor="end" font-size="11" fill="#8aa0ad">8420</text><rect y="56" width="144" height="22" rx="5" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.15)"/><text x="10" y="71" font-weight="700" font-size="11" fill="#9fb6c4">3</text><text x="28" y="71" font-size="11" fill="#cfe0ea">· · ·</text><text x="134" y="71" text-anchor="end" font-size="11" fill="#8aa0ad">7710</text></g></svg>` },
 ];
 function renderTut() {
   const s = TUT_SLIDES[tutIdx];
@@ -928,7 +910,7 @@ const BESTIARY = [
     desc: { en: "A gold-ringed elite — far tougher and hits harder, but drops a battery. One appears about every minute.", hr: "Zlatno-obrubljena elita — puno žilavija i jača, ali ispušta bateriju. Pojavi se otprilike svake minute." } },
   { svg: `<svg viewBox="0 0 44 44"><g transform="translate(22,22)"><polygon points="18,0 9,15.6 -9,15.6 -18,0 -9,-15.6 9,-15.6" fill="#7a1428" stroke="#ff2850" stroke-width="2.5"/><polygon points="9,0 4.5,7.8 -4.5,7.8 -9,0 -4.5,-7.8 4.5,-7.8" fill="#ff2850"/><circle r="5" fill="#fff2b0"/></g></svg>`,
     name: { en: "The Overload (boss)", hr: "Preopterećenje (boss)" },
-    desc: { en: "Arrives at 5:00 with radial bullet bursts and telegraphed charges. Beat it to win — then it rebuilds, stronger.", hr: "Stiže na 5:00 s kružnim rafalima i najavljenim naletima. Pobijedi ga da pobijediš — pa se vraća, jači." } },
+    desc: { en: "Arrives at 5:00 with radial bullet bursts and telegraphed charges. There's no winning it — purge it and it just rebuilds, stronger.", hr: "Stiže na 5:00 s kružnim rafalima i najavljenim naletima. Ne može se 'pobijediti' — uništiš ga i samo se vraća jači." } },
 ];
 function buildBestiary() {
   let h = `<div class="arsGrid">`;

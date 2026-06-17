@@ -1,4 +1,4 @@
--- NEON SWARM leaderboard schema (Cloudflare D1)
+-- BGW ELECTRO SHOOTER leaderboard schema (Cloudflare D1)
 CREATE TABLE IF NOT EXISTS scores (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,

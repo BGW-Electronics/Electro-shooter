@@ -18,18 +18,18 @@ powershell -ExecutionPolicy Bypass -File serve.ps1
 | Input | Action |
 |---|---|
 | `WASD` / arrow keys | Move |
-| `SPACE` / `SHIFT` | Dash (brief invulnerability, 2s cooldown) |
+| `SPACE` / `SHIFT` | Dash — unlocks at lvl 10, brief invulnerability, cooldown shrinks as you level |
 | `P` / `ESC` | Pause |
 | `M` | Mute |
 | `1` `2` `3` | Pick upgrade on level-up |
 | Touch | Drag to move, tap with a second finger to dash |
 
-Your defenses fire automatically. Destroy the rogue components, vacuum up the charge they drop, and pick one of three upgrades each level.
+Your defenses fire automatically. Destroy the rogue components, vacuum up the charge they drop, and pick one of three upgrades each level (always at least one weapon and one passive on offer). Every level-up also grants a brief invulnerability shield, so push aggressively for kills.
 
-- **Weapons (5, each up to lvl 5):** Arc Emitter, Coil Rotors, EMP Pulse (also wipes enemy shots), Tesla Arc, Ion Seekers.
-- **Passives (6):** Voltage Boost, Overclock, Swift Circuits, Capacitor Bank (max HP), Magnetic Field (pickup range), Trickle Charge (regen).
-- **Enemies (rogue components):** Resistors, Diodes (0:40), Transformers (1:30), Transistors that split into Electrons (2:20), ranged Actuators (3:20), plus gold-ringed **overcharged** units every minute.
-- **Boss:** THE OVERLOAD arrives at **5:00** — radial bursts and telegraphed charges. Purge it to win, then keep going: the grid stays endless and a stronger Overload rebuilds every 4 minutes.
+- **Weapons (7, each up to lvl 5):** Arc Emitter, Coil Rotors, EMP Pulse, Tesla Arc, Ion Seekers, plus two later unlocks — **Railgun** (lvl 20) and **Static Field** (lvl 30).
+- **Passives (8):** Voltage Boost (+dmg), Overclock (+atk speed), Swift Circuits (+move speed), Capacitor Bank (+max HP), Magnetic Field (+pickup range), Trickle Charge (regen), Energy Siphon (lifesteal), Overvolt (+crit).
+- **Enemies (rogue components):** Resistors, Diodes (0:40), Transformers (1:30), ranged Actuators (2:00), Transistors that split into Electrons (2:20), plus gold-ringed **overcharged** elites (roughly every minute, more often later).
+- **Boss:** THE OVERLOAD arrives at **5:00** — radial bursts and telegraphed charges. There's no winning it: purge it and a stronger Overload just rebuilds every 4 minutes. The grid is endless — survive for the highest score.
 - Pickups: green **battery** recharges HP, yellow **EMP** clears the screen. Best score is saved locally.
 
 ## Global leaderboard
@@ -59,7 +59,7 @@ falls back to the static game files). Free tier covers everything: hosting, a
 
 **Turn the leaderboard on:**
 
-4. Dashboard → **Storage & Databases → D1 → Create database** → name it `neon-swarm-db`.
+4. Dashboard → **Storage & Databases → D1 → Create database** → name it `electro-shooter-db`.
 5. Open it → **Console** → paste the contents of `schema.sql` → run.
 6. In `wrangler.toml`, paste the database's id into `database_id` and **uncomment** the four
    `[[d1_databases]]` lines. Commit + push. Done — global scores now save.
@@ -69,10 +69,21 @@ falls back to the static game files). Free tier covers everything: hosting, a
 ```powershell
 npm i -g wrangler
 wrangler login
-wrangler d1 create neon-swarm-db        # paste the returned id into wrangler.toml, uncomment the block
-wrangler d1 execute neon-swarm-db --remote --file schema.sql
+wrangler d1 create electro-shooter-db        # paste the returned id into wrangler.toml, uncomment the block
+wrangler d1 execute electro-shooter-db --remote --file schema.sql
 wrangler deploy
 ```
+
+## Custom domain (electro-shooter.com)
+
+The game is wired for the custom domain (canonical + social tags already point at it).
+Add `electro-shooter.com` as a zone in your Cloudflare account first — Dashboard →
+**Add a site**, then point your registrar's nameservers at Cloudflare. Then either:
+
+- **Dashboard (simplest):** open the Worker → **Settings → Domains & Routes → Add →
+  Custom Domain** → enter `electro-shooter.com`. Cloudflare provisions the DNS record and
+  TLS certificate automatically.
+- **Config:** uncomment the `routes` block in `wrangler.toml` and run `npx wrangler deploy`.
 
 ## Files
 
