@@ -26,7 +26,7 @@ powershell -ExecutionPolicy Bypass -File serve.ps1
 
 Your defenses fire automatically. Destroy the rogue components, vacuum up the charge they drop, and pick one of three upgrades each level (always at least one weapon and one passive on offer). Every level-up also grants a brief invulnerability shield, so push aggressively for kills.
 
-- **Weapons (7, each up to lvl 5):** Arc Emitter, Coil Rotors, EMP Pulse, Tesla Arc, Ion Seekers, plus two later unlocks — **Railgun** (lvl 20) and **Static Field** (lvl 30).
+- **Weapons (7, each up to lvl 5):** Arc Emitter, Coil Rotors, EMP Pulse (also wipes incoming shots), Tesla Arc, Ion Seekers, plus two later unlocks — **Railgun** (lvl 20) and **Static Field** (lvl 30).
 - **Passives (8):** Voltage Boost (+dmg), Overclock (+atk speed), Swift Circuits (+move speed), Capacitor Bank (+max HP), Magnetic Field (+pickup range), Trickle Charge (regen), Energy Siphon (lifesteal), Overvolt (+crit).
 - **Enemies (rogue components):** Resistors, Diodes (0:40), Transformers (1:30), ranged Actuators (2:00), Transistors that split into Electrons (2:20), plus gold-ringed **overcharged** elites (roughly every minute, more often later).
 - **Boss:** THE OVERLOAD arrives at **5:00** — radial bursts and telegraphed charges. There's no winning it: purge it and a stronger Overload just rebuilds every 4 minutes. The grid is endless — survive for the highest score.

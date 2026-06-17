@@ -518,6 +518,13 @@ function updateNovas(dt) {
   for (const n of state.novas) {
     n.r += 430 * dt;
     if (n.r >= n.maxR) { n.dead = true; continue; }
+    /* EMP shockwave knocks out enemy shots as its wavefront sweeps through them —
+       bullets already inside the ring still get through, so there's no free camping bubble */
+    for (const b of state.ebullets) {
+      if (b.dead) continue;
+      const bd = Math.hypot(b.x - n.x, b.y - n.y);
+      if (Math.abs(bd - n.r) < b.r + 16) { b.dead = true; b.life = 0; }
+    }
     for (const e of state.enemies) {
       if (e.dead || n.hit.has(e)) continue;
       const d = Math.hypot(e.x - n.x, e.y - n.y);

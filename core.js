@@ -31,7 +31,7 @@ const IS_MOBILE = (function () {
   return ua || (coarse && !anyFine);
 })();
 /* world zoom: phones zoom out to see more of the arena; desktop stays 1:1. */
-let ZOOM = IS_MOBILE ? 0.78 : 1;
+let ZOOM = IS_MOBILE ? 0.66 : 1;
 /* visible world half-extents (account for zoom) — used for spawning + background fill */
 function viewHW() { return (W / 2) / ZOOM; }
 function viewHH() { return (H / 2) / ZOOM; }
@@ -297,8 +297,8 @@ const WEAPON_DEFS = {
             hr: ["2 zavojnice kruže oko jezgre i ranjavaju dodirom", "+1 zavojnica", "+1 zavojnica, brža vrtnja", "+1 zavojnica, +šteta", "+2 zavojnice, maks. snaga"] } },
   nova:      { icon: "◎", css: "#5dffc9", table: NOVA,
     name: { en: "EMP Pulse", hr: "EMP Puls" },
-    desc: { en: ["Periodic shockwave that blasts everything around you", "Bigger, stronger", "Faster recharge", "Bigger, stronger", "Massive EMP"],
-            hr: ["Povremeni val koji razbija sve oko tebe", "Veći, jači", "Brže punjenje", "Veći, jači", "Ogroman EMP"] } },
+    desc: { en: ["Periodic shockwave that blasts foes and wipes incoming shots", "Bigger, stronger", "Faster recharge", "Bigger, stronger", "Massive EMP"],
+            hr: ["Povremeni val koji razbija neprijatelje i čisti dolazne metke", "Veći, jači", "Brže punjenje", "Veći, jači", "Ogroman EMP"] } },
   lightning: { icon: "⚡", css: "#ffe75e", table: LIGHTNING,
     name: { en: "Tesla Arc", hr: "Tesla Luk" },
     desc: { en: ["Zaps the nearest component, arcs between foes", "+1 chain", "+1 chain, +damage", "+1 chain", "+2 chains, max power"],
