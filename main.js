@@ -45,6 +45,7 @@ addEventListener("keydown", e => {
     else if (e.code === "Digit3" || e.code === "Numpad3") chooseUpgrade(2);
   } else if (m === "over") {
     if (["KeyR", "Enter", "Space"].includes(e.code)) startGame();
+    else if (e.code === "Escape") toMenu();
   }
 });
 addEventListener("keyup", e => { keys[e.code] = false; });
@@ -80,6 +81,8 @@ function updateMuteBtn(muted) { $("muteBtn").textContent = muted ? "ðŸ”‡" : "ðŸ”
 $("muteBtn").onclick = e => { AudioSys.init(); updateMuteBtn(AudioSys.toggleMute()); e.currentTarget.blur(); };
 $("startBtn").onclick = e => { AudioSys.init(); startGame(); e.currentTarget.blur(); };
 $("restartBtn").onclick = e => { startGame(); e.currentTarget.blur(); };
+$("overMenuBtn").onclick = e => { e.currentTarget.blur(); toMenu(); };
+$("shareBtn").onclick = e => { e.currentTarget.blur(); shareScore(); };
 $("resumeBtn").onclick = e => { setPause(false); e.currentTarget.blur(); };
 
 /* on-screen touch controls */
@@ -123,6 +126,85 @@ function gameOver() {
   fillStats($("overStats"));
   show(overEl);
   if (typeof lbOnGameOver === "function") lbOnGameOver();
+}
+
+function toMenu() {
+  hide(overEl);
+  newGame();
+  state.mode = "menu";
+  show(menuEl);
+  if (typeof updateMenuBest === "function") updateMenuBest();
+  if (typeof lbRenderMenu === "function") lbRenderMenu();
+}
+
+/* ---- share: render a compact score-card snapshot, then share/save it ---- */
+function drawShareBadge(x, cx, cy, size) {
+  const s = size / 64, ox = cx - 32 * s, oy = cy - 32 * s;
+  const P = (px, py) => [ox + px * s, oy + py * s];
+  const poly = pts => { x.beginPath(); pts.forEach((p, i) => { const q = P(p[0], p[1]); i ? x.lineTo(q[0], q[1]) : x.moveTo(q[0], q[1]); }); x.closePath(); };
+  poly([[56, 32], [44, 52.78], [20, 52.78], [8, 32], [20, 11.22], [44, 11.22]]);
+  x.strokeStyle = "rgba(0,255,217,0.7)"; x.lineWidth = 2; x.stroke();
+  poly([[38, 9], [19, 35], [30, 35], [26, 55], [45, 29], [34, 29]]);
+  x.shadowColor = "rgba(0,255,217,0.8)"; x.shadowBlur = 14; x.fillStyle = "#00ffd9"; x.fill(); x.shadowBlur = 0;
+}
+
+function buildScoreCard() {
+  const W = 640, H = 360, c = document.createElement("canvas");
+  c.width = W; c.height = H;
+  const x = c.getContext("2d");
+  x.fillStyle = "#05070f"; x.fillRect(0, 0, W, H);
+  const g = x.createRadialGradient(W / 2, 70, 0, W / 2, 70, 340);
+  g.addColorStop(0, "rgba(0,255,217,0.16)"); g.addColorStop(1, "rgba(0,255,217,0)");
+  x.fillStyle = g; x.fillRect(0, 0, W, H);
+  x.strokeStyle = "rgba(0,255,217,0.45)"; x.lineWidth = 2;
+  x.beginPath();
+  if (x.roundRect) x.roundRect(9, 9, W - 18, H - 18, 16); else x.rect(9, 9, W - 18, H - 18);
+  x.stroke();
+  drawShareBadge(x, W / 2, 62, 54);
+  x.textAlign = "center"; x.textBaseline = "middle";
+  x.fillStyle = "#eafffb"; x.font = "700 22px Arial, sans-serif";
+  x.fillText("BGW ELECTRO SHOOTER", W / 2, 110);
+  x.fillStyle = "#7fa6b8"; x.font = "400 13px Arial, sans-serif";
+  x.fillText(t("statScore"), W / 2, 146);
+  x.shadowColor = "rgba(0,255,217,0.7)"; x.shadowBlur = 26;
+  x.fillStyle = "#00ffd9"; x.font = "800 62px Arial, sans-serif";
+  x.fillText(Math.floor(state.score).toLocaleString(), W / 2, 188);
+  x.shadowBlur = 0;
+  const stats = [[t("statUptime"), fmtTime(state.time)], [t("statLevel"), String(state.level)], [t("statKills"), String(state.kills)]];
+  const centers = [W / 2 - 150, W / 2, W / 2 + 150];
+  for (let i = 0; i < 3; i++) {
+    x.fillStyle = "#7fa6b8"; x.font = "400 13px Arial, sans-serif"; x.fillText(stats[i][0], centers[i], 248);
+    x.fillStyle = "#dff7ff"; x.font = "700 26px Arial, sans-serif"; x.fillText(stats[i][1], centers[i], 278);
+  }
+  x.fillStyle = "#5f8a96"; x.font = "700 17px Arial, sans-serif";
+  x.fillText("electro-shooter.com", W / 2, H - 34);
+  return c;
+}
+
+async function shareScore() {
+  const status = $("shareStatus");
+  const card = buildScoreCard();
+  const text = t("shareText", Math.floor(state.score).toLocaleString());
+  let blob = null;
+  try { blob = await new Promise(res => card.toBlob(res, "image/png")); } catch (e) {}
+  const file = blob ? new File([blob], "electro-shooter-score.png", { type: "image/png" }) : null;
+  if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: "BGW Electro Shooter", text }); return; }
+    catch (e) { if (e && e.name === "AbortError") return; }
+  }
+  if (navigator.share) {
+    try { await navigator.share({ title: "BGW Electro Shooter", text }); return; }
+    catch (e) { if (e && e.name === "AbortError") return; }
+  }
+  if (blob) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "electro-shooter-score.png";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 8000);
+  }
+  try { await navigator.clipboard.writeText(text); } catch (e) {}
+  if (status) { status.textContent = t("shareSaved"); status.classList.remove("hidden"); }
 }
 
 /* ---------------- upgrade UI ---------------- */

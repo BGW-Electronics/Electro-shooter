@@ -62,6 +62,8 @@ const LANG = {
     paused: "PAUSED", pauseHint: "WASD move · SPACE dash · M mute", resume: "RESUME [P]",
     /* over / win */
     gridDown: "GRID DOWN", restart: "RESTART [R]",
+    mainMenu: "MAIN MENU", share: "SHARE", shareSaved: "IMAGE SAVED · TEXT COPIED",
+    shareText: "I scored {0} on BGW Electro Shooter — beat me at https://electro-shooter.com",
     /* stats */
     statUptime: "UPTIME", statLevel: "LEVEL", statKills: "KILLS", statScore: "SCORE", statBest: "BEST", statNew: " ★ NEW",
     /* HUD */
@@ -113,6 +115,8 @@ const LANG = {
     paused: "PAUZA", pauseHint: "WASD kretanje · SPACE nalet · M zvuk", resume: "NASTAVI [P]",
     /* over / win */
     gridDown: "MREŽA PALA", restart: "PONOVO [R]",
+    mainMenu: "GLAVNI IZBORNIK", share: "PODIJELI", shareSaved: "SLIKA SPREMLJENA · TEKST KOPIRAN",
+    shareText: "Postigao sam {0} u BGW Electro Shooter — pobijedi me na https://electro-shooter.com",
     /* stats */
     statUptime: "VRIJEME", statLevel: "NIVO", statKills: "UNIŠTENO", statScore: "REZULTAT", statBest: "REKORD", statNew: " ★ NOVO",
     /* HUD */

@@ -127,6 +127,7 @@ body.mobile .tutCard h3{ font-size:18px; }
 body.mobile .tutCard p{ font-size:13px; line-height:1.5; }
 
 /* POWER-UPS / ENEMIES: let the whole overlay scroll on phones (single scroll area) */
+body.mobile #over{ justify-content:flex-start; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:18px 14px 30px; }
 body.mobile #arsenal, body.mobile #enemies{ justify-content:flex-start; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:16px 12px 32px; gap:10px; }
 body.mobile .arsenalScroll{ max-height:none; overflow:visible; width:100%; padding:2px 2px 4px; }
 body.mobile .arsGrid{ grid-template-columns:1fr; }
@@ -269,7 +270,12 @@ body.light #muteBtn{ color:#067a68; }
   </div>
   <p class="sub hidden" id="lbStatus"></p>
   <div class="lbPanel hidden" id="overBoard"></div>
-  <button id="restartBtn" data-i18n="restart">RESTART [R]</button>
+  <div class="btnrow">
+    <button id="restartBtn" data-i18n="restart">RESTART [R]</button>
+    <button id="overMenuBtn" class="small" data-i18n="mainMenu">MAIN MENU</button>
+    <button id="shareBtn" class="small" data-i18n="share">SHARE</button>
+  </div>
+  <p class="sub hidden" id="shareStatus"></p>
 </div>
 
 <div class="overlay hidden" id="arsenal">
