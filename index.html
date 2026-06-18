@@ -53,6 +53,8 @@ button{ font:inherit; cursor:pointer; background:transparent; color:var(--cy); b
   box-shadow:0 0 14px rgba(0,255,217,.25), inset 0 0 14px rgba(0,255,217,.06); }
 button:hover{ background:var(--cy); color:#03131a; box-shadow:0 0 30px rgba(0,255,217,.7); }
 button.small{ padding:8px 18px; font-size:13px; }
+/* fixed widths on the menu buttons so toggling language/theme never reflows the screen */
+.subrow .small{ width:160px; }
 
 h2{ font-size:min(9vw,46px); margin:0; letter-spacing:.14em; color:#fff; text-shadow:0 0 18px var(--mg),0 0 50px rgba(255,45,149,.5); }
 #levelup h2{ text-shadow:0 0 18px var(--cy),0 0 50px rgba(0,255,217,.5); }
@@ -149,8 +151,8 @@ button:disabled{ opacity:.3; cursor:default; pointer-events:none; }
 .mainrow{ margin-top:2px; }
 .optrow{ display:flex; gap:14px 30px; flex-wrap:wrap; justify-content:center; align-items:center; margin-top:2px; }
 .optgroup{ display:flex; align-items:center; gap:8px; }
-.optlabel{ font-size:11px; letter-spacing:.22em; color:#7fa6b8; text-transform:uppercase; }
-.opt{ font:inherit; cursor:pointer; background:transparent; color:#9fdce8; border:1px solid rgba(0,255,217,.28); padding:6px 14px; font-size:12px; letter-spacing:.1em; border-radius:7px; text-transform:uppercase; transition:.13s; }
+.optlabel{ font-size:11px; letter-spacing:.22em; color:#7fa6b8; text-transform:uppercase; width:80px; text-align:right; }
+.opt{ font:inherit; cursor:pointer; background:transparent; color:#9fdce8; border:1px solid rgba(0,255,217,.28); padding:6px 14px; font-size:12px; letter-spacing:.1em; border-radius:7px; text-transform:uppercase; transition:.13s; width:96px; }
 .opt:hover{ border-color:var(--cy); color:#fff; }
 .opt.on{ background:var(--cy); color:#03131a; border-color:var(--cy); box-shadow:0 0 12px rgba(0,255,217,.4); }
 
