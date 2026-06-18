@@ -481,7 +481,11 @@ function render() {
     ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, TAU); ctx.stroke();
   }
   for (const g of state.gems) drawGlow(g.x, g.y, 5 + Math.min(6, g.val * 1.5), "0,255,170", 0.7);
-  for (const u of state.pickups) drawGlow(u.x, u.y, 11, u.kind === "heart" ? "90,255,160" : "255,230,80", 0.8);
+  for (const u of state.pickups) {
+    let ga = 0.8;
+    if (u.life !== undefined && u.life < 3 && Math.sin(state.time * (9 + (3 - u.life) * 7)) <= -0.3) ga = 0.18;
+    drawGlow(u.x, u.y, 11, u.kind === "heart" ? "90,255,160" : "255,230,80", ga);
+  }
   for (const e of state.enemies) drawGlow(e.x, e.y, e.r * 1.5, e.col, e.elite || e.boss ? 0.85 : 0.55);
   for (const b of state.bullets) drawGlow(b.x, b.y, 6, "140,220,255", 0.8);
   for (const b of state.ebullets) drawGlow(b.x, b.y, 7, "255,70,160", 0.85);
@@ -520,8 +524,11 @@ function render() {
   ctx.textAlign = "center"; ctx.textBaseline = "middle";
   for (const u of state.pickups) {
     const by = u.y + Math.sin(state.time * 4 + u.ph) * 3;
+    const blinkOff = u.life !== undefined && u.life < 3 && Math.sin(state.time * (9 + (3 - u.life) * 7)) <= -0.3;
+    ctx.globalAlpha = blinkOff ? 0.15 : 1;
     if (u.kind === "heart") drawBattery(u.x, by);
     else drawEMP(u.x, by, state.time);
+    ctx.globalAlpha = 1;
   }
 
   for (const e of state.enemies) {

@@ -99,12 +99,12 @@ function killEnemy(e) {
     }
   }
   if (e.elite) {
-    state.pickups.push({ kind: "heart", x: e.x, y: e.y, ph: rand(0, TAU), life: 16 });
-    if (Math.random() < 0.12) state.pickups.push({ kind: "nuke", x: e.x + 24, y: e.y, ph: rand(0, TAU), life: 16 });
+    state.pickups.push({ kind: "heart", x: e.x, y: e.y, ph: rand(0, TAU), life: 20 });
+    if (Math.random() < 0.15) state.pickups.push({ kind: "nuke", x: e.x + 24, y: e.y, ph: rand(0, TAU), life: 28 });
     addShake(7, 0.3);
   } else {
-    if (Math.random() < 0.006) state.pickups.push({ kind: "heart", x: e.x, y: e.y, ph: rand(0, TAU), life: 13 });
-    else if (Math.random() < 0.0018) state.pickups.push({ kind: "nuke", x: e.x, y: e.y, ph: rand(0, TAU), life: 13 });
+    if (Math.random() < 0.006) state.pickups.push({ kind: "heart", x: e.x, y: e.y, ph: rand(0, TAU), life: 17 });
+    else if (Math.random() < 0.00225) state.pickups.push({ kind: "nuke", x: e.x, y: e.y, ph: rand(0, TAU), life: 24 });
   }
 }
 
