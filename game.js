@@ -731,8 +731,15 @@ function updatePickups(dt) {
     if (d < p.r + 13) {
       u.dead = true;
       if (u.kind === "heart") {
-        p.hp = Math.min(p.maxhp, p.hp + 15);
-        addText("+15", p.x, p.y - 20, false, "#ff7eb0");
+        const heal = Math.min(15, p.maxhp - p.hp);
+        p.hp += heal;
+        /* don't waste a battery on full HP — the overflow is recycled into XP at 50% */
+        const bonusXP = Math.round((15 - heal) * 0.5);
+        if (heal > 0) addText("+" + Math.round(heal), p.x, p.y - 20, false, "#ff7eb0");
+        if (bonusXP > 0) {
+          gainXP(bonusXP);
+          addText("+" + bonusXP + " XP", p.x, p.y - (heal > 0 ? 36 : 20), false, "#00ffaa");
+        }
         sfx("heart");
       } else if (u.kind === "nuke") {
         doNuke();
