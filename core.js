@@ -47,13 +47,20 @@ function makeRadialOverlay(col) {
   g.fillStyle = gr; g.fillRect(0, 0, W, H);
   return c;
 }
+function rebuildVignettes() {
+  vigDark = makeRadialOverlay(typeof themeVignette === "function" ? themeVignette() : "rgba(0,0,14,0.55)");
+  vigHurt = makeRadialOverlay("rgba(255,20,55,0.55)");
+}
+let vigTimer = 0;
 function resize() {
   W = innerWidth; H = innerHeight;
   canvas.width = Math.floor(W * DPR); canvas.height = Math.floor(H * DPR);
   canvas.style.width = W + "px"; canvas.style.height = H + "px";
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  vigDark = makeRadialOverlay(typeof themeVignette === "function" ? themeVignette() : "rgba(0,0,14,0.55)");
-  vigHurt = makeRadialOverlay("rgba(255,20,55,0.55)");
+  /* the two fullscreen vignette canvases are expensive — debounce their rebuild;
+     mobile URL-bar show/hide fires resize continuously while scrolling */
+  if (!vigDark) rebuildVignettes();
+  else { clearTimeout(vigTimer); vigTimer = setTimeout(rebuildVignettes, 120); }
 }
 addEventListener("resize", resize);
 
@@ -183,6 +190,9 @@ const AudioSys = {
     this.nextT = this.ctx.currentTime + 0.1;
     setInterval(() => {
       if (!this.ctx) return;
+      /* while muted, keep the clock pinned instead of scheduling inaudible notes —
+         otherwise unmuting would dump a backlog of catch-up notes at once */
+      if (this.muted) { this.nextT = this.ctx.currentTime + 0.1; return; }
       while (this.nextT < this.ctx.currentTime + 0.18) {
         const s = this.step % 16, bar = Math.floor(this.step / 16) % 4;
         if (bassOn[s]) this.mnote(55 * Math.pow(2, bassSemi[s] / 12), this.nextT, stepDur * 0.9, 0.5);
@@ -343,7 +353,7 @@ const UNLOCKS = [
   [40,  "speedy",   "unlockDiodes"],
   [90,  "tank",     "unlockTransformers"],
   [140, "splitter", "unlockTransistors"],
-  [200, "shooter",  "unlockActuators"],
+  [120, "shooter",  "unlockActuators"],   /* keep in sync with pickType() in game.js */
 ];
 
 /* ---------------- best score ---------------- */

@@ -240,8 +240,9 @@ function director(dt) {
   }
 
   state.spawnT -= dt;
-  /* gentle during the climb (hyper 0); ramps up hard once you've beaten the Overload */
-  const CAP = 165 + state.hyper * 60;
+  /* gentle during the climb (hyper 0); ramps up hard once you've beaten the Overload.
+     hard ceiling keeps deep hyper runs from melting phones */
+  const CAP = Math.min(400, 165 + state.hyper * 60);
   let interval = clamp(1.15 - tm * 0.0024 - state.hyper * 0.16, 0.14, 1.15);
   if (state.boss) interval *= 1.35;
   if (state.spawnT <= 0 && state.enemies.length < CAP) {
@@ -659,7 +660,7 @@ function tryDash() {
 
 function updatePlayer(dt) {
   const p = state.player;
-  p.ifr -= dt; p.dashCd -= dt;
+  p.ifr = Math.max(0, p.ifr - dt); p.dashCd = Math.max(0, p.dashCd - dt);
   if (state.dashLockMsgT > 0) state.dashLockMsgT -= dt;
   p.siphonClock -= dt;
   if (p.siphonClock <= 0) { p.siphonClock = 1; p.siphonBudget = siphonCapPS(); }
@@ -735,10 +736,11 @@ function updatePickups(dt) {
         p.hp += heal;
         /* don't waste a battery on full HP — the overflow is recycled into XP at 50% */
         const bonusXP = Math.round((15 - heal) * 0.5);
-        if (heal > 0) addText("+" + Math.round(heal), p.x, p.y - 20, false, "#ff7eb0");
+        const showHeal = heal >= 0.5;   /* fractional regen leftovers would print "+0" */
+        if (showHeal) addText("+" + Math.round(heal), p.x, p.y - 20, false, "#ff7eb0");
         if (bonusXP > 0) {
           gainXP(bonusXP);
-          addText("+" + bonusXP + " XP", p.x, p.y - (heal > 0 ? 36 : 20), false, "#00ffaa");
+          addText("+" + bonusXP + " XP", p.x, p.y - (showHeal ? 36 : 20), false, "#00ffaa");
         }
         sfx("heart");
       } else if (u.kind === "nuke") {

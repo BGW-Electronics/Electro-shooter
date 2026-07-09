@@ -113,7 +113,7 @@ async function lbSubmit() {
   }
   LB.busy = false;
   btn.disabled = false;
-  btn.textContent = "SUBMIT";
+  btn.textContent = t("submit");
 }
 
 document.getElementById("submitScoreBtn").addEventListener("click", lbSubmit);

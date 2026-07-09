@@ -48,7 +48,7 @@ const LANG = {
     /* menu */
     start: "START", howto: "HOW TO PLAY", powerups: "POWER-UPS",
     menuSub: "harvest charge · upgrade the grid · survive THE OVERLOAD at 5:00",
-    controls: `<b>WASD / arrows</b> move &nbsp;·&nbsp; defenses fire automatically &nbsp;·&nbsp; <b>SHIFT / SPACE</b> dash <span class="dim">(unlocks LV 10)</span><br><b>P</b> pause &nbsp;·&nbsp; <b>M</b> mute &nbsp;·&nbsp; touch: drag to move, second finger to dash`,
+    controls: `<b>WASD / arrows</b> move &nbsp;·&nbsp; defenses fire automatically &nbsp;·&nbsp; <b>SHIFT / SPACE</b> dash <span class="dim">(unlocks LV 10)</span><br><b>P</b> pause &nbsp;·&nbsp; <b>M</b> mute &nbsp;·&nbsp; touch: drag to move, on-screen dash button`,
     theme: "THEME", themeDark: "DARK", themeLight: "LIGHT", language: "LANGUAGE",
     menuBestRecord: "grid record {0} · best uptime {1}", menuBestFirst: "first shift — protect the grid",
     /* level up */
@@ -81,7 +81,7 @@ const LANG = {
     enemies: "ENEMIES", enemiesTitle: "ENEMIES", enemiesSub: "the rogue components you'll face",
     arsWeapons: "Weapons — auto-fire, each levels up to 5", arsPassives: "Passives — stack for bigger boosts", arsAbility: "Ability & pickups",
     surgeDashCodex: "Unlocks at level 10. Dash (SHIFT / SPACE or the on-screen button) for a fast burst with brief invulnerability — slip through enemies. Every 10 levels you can cut its cooldown (starts at 7s).",
-    batteryName: "Battery", batteryDesc: "Dropped by elites and bosses — instantly restores 20 HP.",
+    batteryName: "Battery", batteryDesc: "Dropped by elites and bosses — instantly restores 15 HP; surplus charge converts to XP.",
     empName: "EMP", empDesc: "Rare drop — wipes every enemy on screen and clears their shots.",
     repairCodexDesc: "Offered on level-up when nothing new fits — restores 40 HP.",
     /* leaderboard */
@@ -101,9 +101,9 @@ const LANG = {
     /* menu */
     start: "START", howto: "KAKO IGRATI", powerups: "POJAČANJA",
     menuSub: "skupljaj naboj · nadograđuj mrežu · preživi PREOPTEREĆENJE na 5:00",
-    controls: `<b>WASD / strelice</b> kretanje &nbsp;·&nbsp; obrana puca sama &nbsp;·&nbsp; <b>SHIFT / SPACE</b> nalet <span class="dim">(otključava se LV 10)</span><br><b>P</b> pauza &nbsp;·&nbsp; <b>M</b> zvuk &nbsp;·&nbsp;`,
+    controls: `<b>WASD / strelice</b> kretanje &nbsp;·&nbsp; obrana puca sama &nbsp;·&nbsp; <b>SHIFT / SPACE</b> nalet <span class="dim">(otključava se LV 10)</span><br><b>P</b> pauza &nbsp;·&nbsp; <b>M</b> zvuk &nbsp;·&nbsp; dodir: povuci za kretanje, gumb na ekranu za nalet`,
     theme: "TEMA", themeDark: "TAMNA", themeLight: "SVIJETLA", language: "JEZIK",
-    menuBestRecord: "rekord {0} · najduže {1}", menuBestFirst: "",
+    menuBestRecord: "rekord {0} · najduže {1}", menuBestFirst: "prva smjena — zaštiti mrežu",
     /* level up */
     levelup: "NOVI NIVO", levelupSub: "ODABERI POJAČANJE — KLIKNI ILI PRITISNI 1 / 2 / 3",
     newWeapon: "NOVO ORUŽJE", unlockPower: "OTKLJUČAJ · POJAČANJE",
@@ -134,7 +134,7 @@ const LANG = {
     enemies: "PROTIVNICI", enemiesTitle: "PROTIVNICI", enemiesSub: "odmetnute komponente protiv kojih se boriš",
     arsWeapons: "Oružja — pucaju sama, svako ide do nivoa 5", arsPassives: "Pasivna — slažu se za veći boost", arsAbility: "Sposobnost i predmeti",
     surgeDashCodex: "Otključava se na nivou 10. Nalet (SHIFT / SPACE ili gumb na ekranu) za brzi trzaj uz kratku neranjivost — proklizni kroz neprijatelje. Svakih 10 nivoa možeš skratiti hlađenje (počinje na 7s).",
-    batteryName: "Baterija", batteryDesc: "Ispuštaju je elite i bossovi — odmah vraća 20 HP.",
+    batteryName: "Baterija", batteryDesc: "Ispuštaju je elite i bossovi — odmah vraća 15 HP; višak naboja pretvara se u XP.",
     empName: "EMP", empDesc: "Rijedak predmet — uništi sve neprijatelje na ekranu i očisti njihove hice.",
     repairCodexDesc: "Nudi se pri novom nivou kad ništa novo ne stane — vraća 40 HP.",
     /* leaderboard */

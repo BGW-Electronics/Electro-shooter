@@ -65,9 +65,12 @@ addEventListener("pointermove", e => {
 addEventListener("pointerup", e => { if (stick && e.pointerId === stick.id) stick = null; });
 addEventListener("pointercancel", e => { if (stick && e.pointerId === stick.id) stick = null; });
 addEventListener("contextmenu", e => e.preventDefault());
-addEventListener("blur", () => { if (state && state.mode === "playing") setPause(true); });
+/* keyup never fires for keys released while the window is unfocused —
+   clear them all or the player keeps running on their own after resume */
+function releaseKeys() { for (const k in keys) keys[k] = false; }
+addEventListener("blur", () => { releaseKeys(); if (state && state.mode === "playing") setPause(true); });
 document.addEventListener("visibilitychange", () => {
-  if (document.hidden && state && state.mode === "playing") setPause(true);
+  if (document.hidden) { releaseKeys(); if (state && state.mode === "playing") setPause(true); }
 });
 
 /* ---------------- DOM glue ---------------- */
