@@ -10,3 +10,7 @@ serve.ps1
 README.md
 *.original.md
 .claude/
+package.json
+package-lock.json
+node_modules/
+.gitignore
