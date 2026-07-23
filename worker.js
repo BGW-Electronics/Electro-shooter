@@ -8,6 +8,7 @@
    ============================================================ */
 
 import { onRequestGet, onRequestPost } from "./functions/api/scores.js";
+import { onRequestGet as playsGet, onRequestPost as playsPost } from "./functions/api/plays.js";
 
 const SECURITY_HEADERS = {
   "X-Content-Type-Options": "nosniff",
@@ -39,6 +40,12 @@ export default {
     if (url.pathname === "/api/scores") {
       if (request.method === "GET")  return harden(await onRequestGet({ request, env }));
       if (request.method === "POST") return harden(await onRequestPost({ request, env }));
+      return harden(new Response("Method Not Allowed", { status: 405, headers: { "Allow": "GET, POST" } }));
+    }
+
+    if (url.pathname === "/api/plays") {
+      if (request.method === "GET")  return harden(await playsGet({ request, env }));
+      if (request.method === "POST") return harden(await playsPost({ request, env }));
       return harden(new Response("Method Not Allowed", { status: 405, headers: { "Allow": "GET, POST" } }));
     }
 

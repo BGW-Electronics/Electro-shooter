@@ -102,7 +102,11 @@ function updateDashBtn() {
   } else if (b._cls !== "ready" + curLang) { b.className = "mobctrl ready"; b.innerHTML = '»<span class="lbl">' + t("hudDash") + '</span>'; b._cls = "ready" + curLang; }
 }
 
-function startGame() { hideAll(); newGame(); }
+function startGame() {
+  hideAll();
+  newGame();
+  if (typeof pingPlay === "function") pingPlay();
+}
 
 function setPause(b) {
   if (b && state.mode === "playing") { state.mode = "paused"; show(pauseEl); }
@@ -138,6 +142,7 @@ function toMenu() {
   show(menuEl);
   if (typeof updateMenuBest === "function") updateMenuBest();
   if (typeof lbRenderMenu === "function") lbRenderMenu();
+  if (typeof psRenderMenu === "function") psRenderMenu();
 }
 
 /* ---- share: render a compact score-card snapshot, then share/save it ---- */
@@ -1046,6 +1051,7 @@ function applyLang() {
   if (bestiaryOpen) buildBestiary();
   if (tutOpen) renderTut();
   if (typeof lbRenderMenu === "function") lbRenderMenu();
+  if (typeof psRenderMenu === "function") psRenderMenu();
 }
 function rebuildThemeAssets() {
   panelPattern = null;

@@ -51,6 +51,7 @@ const LANG = {
     controls: `<b>WASD / arrows</b> move &nbsp;·&nbsp; defenses fire automatically &nbsp;·&nbsp; <b>SHIFT / SPACE</b> dash <span class="dim">(unlocks LV 10)</span><br><b>P</b> pause &nbsp;·&nbsp; <b>M</b> mute &nbsp;·&nbsp; touch: drag to move, on-screen dash button`,
     theme: "THEME", themeDark: "DARK", themeLight: "LIGHT", language: "LANGUAGE",
     menuBestRecord: "grid record {0} · best uptime {1}", menuBestFirst: "first shift — protect the grid",
+    playStats: "{0} played today · {1} this month",
     /* level up */
     levelup: "LEVEL UP", levelupSub: "CHOOSE AN UPGRADE — CLICK OR PRESS 1 / 2 / 3",
     newWeapon: "NEW WEAPON", unlockPower: "UNLOCK · POWER-UP",
@@ -104,6 +105,7 @@ const LANG = {
     controls: `<b>WASD / strelice</b> kretanje &nbsp;·&nbsp; obrana puca sama &nbsp;·&nbsp; <b>SHIFT / SPACE</b> nalet <span class="dim">(otključava se LV 10)</span><br><b>P</b> pauza &nbsp;·&nbsp; <b>M</b> zvuk &nbsp;·&nbsp; dodir: povuci za kretanje, gumb na ekranu za nalet`,
     theme: "TEMA", themeDark: "TAMNA", themeLight: "SVIJETLA", language: "JEZIK",
     menuBestRecord: "rekord {0} · najduže {1}", menuBestFirst: "prva smjena — zaštiti mrežu",
+    playStats: "{0} odigrano danas · {1} ovaj mjesec",
     /* level up */
     levelup: "NOVI NIVO", levelupSub: "ODABERI POJAČANJE — KLIKNI ILI PRITISNI 1 / 2 / 3",
     newWeapon: "NOVO ORUŽJE", unlockPower: "OTKLJUČAJ · POJAČANJE",

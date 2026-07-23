@@ -123,3 +123,41 @@ document.getElementById("nameInput").addEventListener("keydown", e => {
 });
 
 lbRenderMenu();
+
+/* ---------------- play counter (times "start" was pressed, today / this month) --------------
+   GET /api/plays is itself edge-cached (~60s, see functions/api/plays.js) — this client-side
+   cache on top of that means re-showing the menu doesn't even trigger a network round-trip. */
+const PS = { data: null, at: 0 };
+const PS_TTL = 55000;
+
+async function psFetch() {
+  if (PS.data && Date.now() - PS.at < PS_TTL) return PS.data;
+  try {
+    const ctl = new AbortController();
+    const tid = setTimeout(() => ctl.abort(), 5000);
+    const r = await fetch("/api/plays", { signal: ctl.signal });
+    clearTimeout(tid);
+    if (!r.ok) throw new Error("http " + r.status);
+    const j = await r.json();
+    PS.data = { today: Number(j.today) || 0, month: Number(j.month) || 0 };
+    PS.at = Date.now();
+  } catch (e) { /* leaves PS.data as-is — stays hidden in local/offline play */ }
+  return PS.data;
+}
+
+async function psRenderMenu() {
+  const el = document.getElementById("menuPlays");
+  if (!el) return;
+  const d = await psFetch();
+  if (!d) { el.classList.add("hidden"); return; }
+  el.textContent = t("playStats", d.today.toLocaleString(), d.month.toLocaleString());
+  el.classList.remove("hidden");
+}
+
+/* called by startGame() in main.js — fire-and-forget, never blocks the run from starting */
+function pingPlay() {
+  fetch("/api/plays", { method: "POST" }).catch(() => {});
+  if (PS.data) { PS.data.today++; PS.data.month++; } /* optimistic bump, no extra GET needed */
+}
+
+psRenderMenu();
